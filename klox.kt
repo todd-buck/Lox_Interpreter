@@ -45,6 +45,7 @@ object Lox {
 
     @JvmStatic
     private fun run(source: String) {
+        val scanner = Scanner(source)
 
     }
 }
