@@ -1,12 +1,33 @@
 package com.craftinginterpreters.lox
 
-
 internal class Scanner(private val source: String) {
     private var start = 0
     private var current = 0
     private var line = 1
 
-    private val tokens: MutableList<Token> = ArrayList()
+    private val tokens:
+            MutableList<Token> = ArrayList()
+
+    //FIXME: Determine proper storage container for data
+    private val keywords:
+            Map<String, TokenType> = mapOf (
+                "and" to TokenType.AND,
+                "class" to TokenType.CLASS,
+                "else" to TokenType.ELSE,
+                "false" to TokenType.FALSE,
+                "for" to TokenType.FOR,
+                "fun" to TokenType.FUN,
+                "if" to TokenType.IF,
+                "nil" to TokenType.NIL,
+                "or" to TokenType.OR,
+                "print" to TokenType.PRINT,
+                "return" to TokenType.RETURN,
+                "super" to TokenType.SUPER,
+                "this" to TokenType.THIS,
+                "true" to TokenType.TRUE,
+                "var" to TokenType.VAR,
+                "while" to TokenType.WHILE
+            )
 
     fun scanTokens() : List<Token> {
         while (!isAtEnd()) {
@@ -22,7 +43,7 @@ internal class Scanner(private val source: String) {
         return current >= source.length
     }
 
-    //NOTE: Might need to include 'break', might be redundant. Check with Mithul
+    //FIXME: Determine if 'break' is implied in Kotlin switch statement, add to each line if not implicit
     private fun scanToken() {
         when (val c = advance()) {
             //single character lexemes
@@ -67,7 +88,7 @@ internal class Scanner(private val source: String) {
         addToken(type, null)
     }
 
-    //NOTE: REVIEW USE OF ANY? IN FUNCTION DECLARATION (MAY NEED TO USE OBJECT?)
+    //FIXME: Review use of ANY? instead of OBJECT?/OBJECT in function declaration
     private fun addToken(type: TokenType, literal: Any?) {
         val text = source.substring(start, current)
         tokens.add(Token(type, text, literal, line))
@@ -123,7 +144,11 @@ internal class Scanner(private val source: String) {
     private fun identifier() {
         while(isAlphaNumeric(peek())) advance()
 
-        addToken(TokenType.IDENTIFIER)
+        val text : String = source.substring(start, current)
+        var type : TokenType? = keywords[text]
+        if(type == null) type = TokenType.IDENTIFIER
+
+        addToken(type)
     }
 
     private fun isAlpha(c: Char) : Boolean {
