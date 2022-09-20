@@ -158,6 +158,10 @@ internal class Scanner(private val source: String) {
     private fun isAlphaNumeric(c: Char) : Boolean {
         return isAlpha(c) || isDigit(c)
     }
+
+    fun getToken(index: Int) : Token {
+        return tokens[index]
+    }
 }
 
 
