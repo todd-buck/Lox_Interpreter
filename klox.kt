@@ -8,6 +8,24 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
+fun main() {
+    val input = Scanner("4 * 2 + 6").scanTokens()
+    val target: MutableList<String> = mutableListOf("4","*","2","+","6")
+    val test: MutableList<String> = ArrayList()
+
+    for(x in input) {
+        println("input: " + x.getLexeme())
+        test.add(x.getLexeme())
+    }
+
+
+    for(x in test)
+        println("test: $x")
+
+    for(x in target) {
+        println("target: $x")
+    }
+}
 
 object Lox {
     @JvmStatic

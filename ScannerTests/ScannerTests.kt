@@ -1,83 +1,84 @@
-package com.craftinginterpreters.lox
-
 import org.junit.Test
-import java.util.*
-import kotlin.collections.ArrayList
-
+import com.craftinginterpreters.lox.*
 class ScannerTests {
+    //TODO: Verify that Scanner() should be reading last empty token (for EOF)
     @Test
     fun predefinedInput_basicInput_SUCCESS() {
-        val input = Scanner("4 * 2 + 6")
+        val input = Scanner("4 * 2 + 6").scanTokens()
+        val target: MutableList<String> = mutableListOf("4","*","2","+","6", "")
         val test: MutableList<String> = ArrayList()
-        val target: MutableList<String> = mutableListOf("4","*","2","+","6")
 
-        for(x in input.tokens())
-            test.add(x.toString())
+        for(x in input)
+            test.add(x.getLexeme())
 
         assert(test == target)
     }
 
     @Test
     fun predefinedInput_NULL_SUCCESS() {
-        val input = Scanner("")
+        val input = Scanner("").scanTokens()
         val test: MutableList<String> = ArrayList()
-        val target: MutableList<String> = mutableListOf()
+        val target: MutableList<String> = mutableListOf("")
 
-        for (x in input.tokens())
-            test.add(x.toString())
+        for (x in input)
+            test.add(x.getLexeme())
+
 
         assert(test == target)
     }
 
     @Test
     fun predefinedInput_trimUselessCharacters_SUCCESS() {
-        val input = Scanner("newline\n tab\t carriage\r")
+        val input = Scanner("newline\n tab\t carriage\r").scanTokens()
         val test: MutableList<String> = ArrayList()
-        val target: MutableList<String> = mutableListOf("newline", "tab", "carriage")
+        val target: MutableList<String> = mutableListOf("newline", "tab", "carriage", "")
 
-        for (x in input.tokens())
-            test.add(x.toString())
+        for (x in input)
+            test.add(x.getLexeme())
 
         assert(test == target)
     }
 
     @Test
     fun predefinedInput_TokenTypeVerification_SUCCESS() {
-        //FIXME: Need to access first element of tokens to perform check
-        //TODO: Fix tokens access, put in checks for rest of tokens (one or two character tokens, literals, keywords)
+        var input = Scanner("(").scanTokens()
+        assert(input[0].getType() == TokenType.LEFT_PAREN)
 
-//        var input = Scanner("(")
-//        assert(input.tokens[0].getTokenType == "LEFT_PAREN")
-//
-//        input = Scanner(")")
-//        assert(input.tokens[0].getTokenType == "RIGHT_PAREN")
-//
-//        input = Scanner("{")
-//        assert(input.tokens[0].getTokenType == "LEFT_BRACE")
-//
-//        input = Scanner("}")
-//        assert(input.tokens[0].getTokenType == "RIGHT_BRACE")
-//
-//        input = Scanner("'")
-//        assert(input.tokens[0].getTokenType == "COMMA")
-//
-//        input = Scanner(".")
-//        assert(input.tokens[0].getTokenType == "DOT")
-//
-//        input = Scanner("-")
-//        assert(input.tokens[0].getTokenType == "MINUS")
-//
-//        input = Scanner("+")
-//        assert(input.tokens[0].getTokenType == "PLUS")
-//
-//        input = Scanner(";")
-//        assert(input.tokens[0].getTokenType == "SEMICOLON")
-//
-//        input = Scanner("/")
-//        assert(input.tokens[0].getTokenType == "SLASH")
-//
-//        input = Scanner("*")
-//        assert(input.tokens[0].getTokenType == "STAR")
+        input = Scanner(")").scanTokens()
+        assert(input[0].getType() == TokenType.RIGHT_PAREN)
+
+        input = Scanner("{").scanTokens()
+        assert(input[0].getType() == TokenType.LEFT_BRACE)
+
+        input = Scanner("}").scanTokens()
+        assert(input[0].getType() == TokenType.RIGHT_BRACE)
+
+
+//      TODO: Fix COMMA test case
+
+//        input = Scanner("'").scanTokens()
+//        assert(input[0].getType() == TokenType.COMMA)
+
+
+//      TODO: Fix DOT test case
+
+//        input = Scanner(".").scanTokens()
+//        assert(input[0].getType() == TokenType.DOT)
+
+        input = Scanner("-").scanTokens()
+        assert(input[0].getType() == TokenType.MINUS)
+
+        input = Scanner("+").scanTokens()
+        assert(input[0].getType() == TokenType.PLUS)
+
+        input = Scanner(";").scanTokens()
+        assert(input[0].getType() == TokenType.SEMICOLON)
+
+        input = Scanner("/").scanTokens()
+        assert(input[0].getType() == TokenType.SLASH)
+
+        input = Scanner("*").scanTokens()
+        assert(input[0].getType() == TokenType.STAR)
     }
 
 }
