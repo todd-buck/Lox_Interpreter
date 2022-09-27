@@ -1,5 +1,3 @@
-package com.craftinginterpreters.lox
-
 enum class TokenType {
     // Single-character tokens.
     LEFT_PAREN, RIGHT_PAREN,

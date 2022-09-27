@@ -1,6 +1,9 @@
+package unitTesting
+
 import org.junit.Test
-import com.craftinginterpreters.lox.*
-import com.craftinginterpreters.lox.Lox.main
+import Lox.main
+import Scanner
+import TokenType
 
 class ScannerTests {
     //TODO: Verify that Scanner() should be reading last empty token (for EOF)
@@ -43,6 +46,7 @@ class ScannerTests {
 
     @Test
     fun predefinedInput_TokenTypeVerification_SUCCESS() {
+        //Single character tokens
         var input = Scanner("(").scanTokens()
         assert(input[0].getType() == TokenType.LEFT_PAREN)
 
@@ -55,11 +59,8 @@ class ScannerTests {
         input = Scanner("}").scanTokens()
         assert(input[0].getType() == TokenType.RIGHT_BRACE)
 
-
-//      TODO: Fix COMMA test case
-
-//        input = Scanner("'Test'").scanTokens()
-//        assert(input[0].getType() == TokenType.COMMA)
+        input = Scanner(",").scanTokens()
+        assert(input[0].getType() == TokenType.COMMA)
 
         input = Scanner(".").scanTokens()
         assert(input[0].getType() == TokenType.DOT)
@@ -76,6 +77,10 @@ class ScannerTests {
         input = Scanner("/").scanTokens()
         assert(input[0].getType() == TokenType.SLASH)
 
+        input = Scanner("*").scanTokens()
+        assert(input[0].getType() == TokenType.STAR)
+
+        //One or two character tokens
         input = Scanner("!").scanTokens()
         assert(input[0].getType() == TokenType.BANG)
 
@@ -100,72 +105,77 @@ class ScannerTests {
         input = Scanner("<=").scanTokens()
         assert(input[0].getType() == TokenType.LESS_EQUAL)
 
-        //TODO: Code test case for literals
+        // literals
+        input = Scanner("2.2").scanTokens()
+        assert(input[0].getType() == TokenType.NUMBER)
 
-        //TODO: Code test case for identifiers
+        input = Scanner("\"example\"").scanTokens()
+        assert(input[0].getType() == TokenType.STRING)
 
-//        input = Scanner("AND").scanTokens()
-//        assert(input[0].getType() == TokenType.AND)
-//
-//        input = Scanner("CLASS").scanTokens()
-//        assert(input[0].getType() == TokenType.CLASS)
-//
-//        input = Scanner("ELSE").scanTokens()
-//        assert(input[0].getType() == TokenType.ELSE)
-//
-//        input = Scanner("FALSE").scanTokens()
-//        assert(input[0].getType() == TokenType.FALSE)
-//
-//        input = Scanner("FUN").scanTokens()
-//        assert(input[0].getType() == TokenType.FUN)
-//
-//        input = Scanner("FOR").scanTokens()
-//        assert(input[0].getType() == TokenType.FOR)
-//
-//        input = Scanner("IF").scanTokens()
-//        assert(input[0].getType() == TokenType.IF)
-//
-//        input = Scanner("NIL").scanTokens()
-//        assert(input[0].getType() == TokenType.NIL)
-//
-//        input = Scanner("OR").scanTokens()
-//        assert(input[0].getType() == TokenType.OR)
-//
-//        input = Scanner("PRINT").scanTokens()
-//        assert(input[0].getType() == TokenType.PRINT)
-//
-//        input = Scanner("RETURN").scanTokens()
-//        assert(input[0].getType() == TokenType.RETURN)
-//
-//        input = Scanner("SUPER").scanTokens()
-//        assert(input[0].getType() == TokenType.SUPER)
-//
-//        input = Scanner("THIS").scanTokens()
-//        assert(input[0].getType() == TokenType.THIS)
-//
-//        input = Scanner("TRUE").scanTokens()
-//        assert(input[0].getType() == TokenType.TRUE)
-//
-//        input = Scanner("VAR").scanTokens()
-//        assert(input[0].getType() == TokenType.VAR)
-//
-//        input = Scanner("WHILE").scanTokens()
-//        assert(input[0].getType() == TokenType.WHILE)
-//
-//        input = Scanner("AND").scanTokens()
-//        assert(input[0].getType() == TokenType.AND)
+        input = Scanner("val").scanTokens()
+        assert(input[0].getType() == TokenType.IDENTIFIER)
+
+        // identifiers that are not user-defined
+        input = Scanner("and").scanTokens()
+        assert(input[0].getType() == TokenType.AND)
+
+        input = Scanner("class").scanTokens()
+        assert(input[0].getType() == TokenType.CLASS)
+
+        input = Scanner("else").scanTokens()
+        assert(input[0].getType() == TokenType.ELSE)
+
+        input = Scanner("false").scanTokens()
+        assert(input[0].getType() == TokenType.FALSE)
+
+        input = Scanner("fun").scanTokens()
+        assert(input[0].getType() == TokenType.FUN)
+
+        input = Scanner("for").scanTokens()
+        assert(input[0].getType() == TokenType.FOR)
+
+        input = Scanner("if").scanTokens()
+        assert(input[0].getType() == TokenType.IF)
+
+        input = Scanner("nil").scanTokens()
+        assert(input[0].getType() == TokenType.NIL)
+
+        input = Scanner("or").scanTokens()
+        assert(input[0].getType() == TokenType.OR)
+
+        input = Scanner("print").scanTokens()
+        assert(input[0].getType() == TokenType.PRINT)
+
+        input = Scanner("return").scanTokens()
+        assert(input[0].getType() == TokenType.RETURN)
+
+        input = Scanner("super").scanTokens()
+        assert(input[0].getType() == TokenType.SUPER)
+
+        input = Scanner("this").scanTokens()
+        assert(input[0].getType() == TokenType.THIS)
+
+        input = Scanner("true").scanTokens()
+        assert(input[0].getType() == TokenType.TRUE)
+
+        input = Scanner("var").scanTokens()
+        assert(input[0].getType() == TokenType.VAR)
+
+        input = Scanner("while").scanTokens()
+        assert(input[0].getType() == TokenType.WHILE)
 
     }
 
     @Test
     fun fileInput_basic_RUN() {
-        val path = arrayOf("ScannerTests/InputFiles/basic.txt")
+        val path = arrayOf("unitTesting/InputFiles/basic.txt")
         println("\nBASIC TEST FROM FILE (\"4 * 2 + 6\"):")
         main(path)
     }
+
     @Test
     fun fileInput_NULL_RUN() {
-        val path = arrayOf("ScannerTests/InputFiles/null.txt")
+        val path = arrayOf("unitTesting/InputFiles/null.txt")
         println("\nNULL TEST FROM FILE (\"\"):")
         main(path)
 
@@ -173,7 +183,7 @@ class ScannerTests {
 
     @Test
     fun fileInput_trimUselessCharacters_RUN() {
-        val path = arrayOf("ScannerTests/InputFiles/uselessCharacters.txt")
+        val path = arrayOf("unitTesting/InputFiles/uselessCharacters.txt")
         println("\nTRIM TEST FROM FILE (\"newline\\n tab\\t carriage\\r\"):")
         main(path)
 

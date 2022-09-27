@@ -1,5 +1,3 @@
-package com.craftinginterpreters.lox
-
 internal class Scanner(private val source: String) {
     private var start = 0
     private var current = 0
@@ -8,7 +6,6 @@ internal class Scanner(private val source: String) {
     private val tokens:
             MutableList<Token> = ArrayList()
 
-    //FIXME: Determine proper storage container for data
     private val keywords:
             Map<String, TokenType> = mapOf (
                 "and" to TokenType.AND,
@@ -88,7 +85,6 @@ internal class Scanner(private val source: String) {
         addToken(type, null)
     }
 
-    //FIXME: Review use of ANY? instead of OBJECT?/OBJECT in function declaration
     private fun addToken(type: TokenType, literal: Any?) {
         val text = source.substring(start, current)
         tokens.add(Token(type, text, literal, line))
@@ -108,9 +104,10 @@ internal class Scanner(private val source: String) {
     }
 
     private fun string() {
-        while(peek() != '"' && !isAtEnd())
-            if(peek() == '\n') line++
+        while(peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') line++
             advance()
+        }
 
         if(isAtEnd())
             Lox.error(line, "Unterminated string.")

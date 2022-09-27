@@ -1,12 +1,10 @@
-package com.craftinginterpreters.lox
-
 class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
-    private val type: TokenType
-    private val lexeme: String
+    val type: TokenType
+    val lexeme: String
 
     //FIXME: Review use of ANY? instead of ANY
     private val literal: Any?
-    private val line: Int
+    val line: Int
 
     init {
         this.type = type
@@ -19,10 +17,12 @@ class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
         return "$type $lexeme $literal"
     }
 
+    @JvmName("getType1")
     fun getType(): TokenType {
         return this.type
     }
 
+    @JvmName("getLexeme1")
     fun getLexeme(): String {
         return this.lexeme
     }

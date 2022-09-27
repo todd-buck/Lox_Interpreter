@@ -1,5 +1,3 @@
-package com.craftinginterpreters.lox
-
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -53,9 +51,12 @@ object Lox {
         val scanner = Scanner(source)
         val tokens = scanner.scanTokens()
 
-        for (token in tokens) {
-            println(token)
-        }
+        val parser = Parser(tokens)
+        val expression : Expression? = parser.parse()
+
+        if(hadError) return
+
+        println(expression?.let { ASTPrinter().print(it) })
     }
 
     @JvmStatic
@@ -67,5 +68,13 @@ object Lox {
     private fun report(line: Int, where: String, message: String) {
         System.err.println("[line $line] Error$where: $message")
         hadError = true
+    }
+
+    fun error(token: Token, message: String) {
+        if (token.type === TokenType.EOF) {
+            report(token.line, " at end", message)
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", message)
+        }
     }
 }
