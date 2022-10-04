@@ -11,15 +11,16 @@ class Parser(tokens: List<Token>) {
         this.tokens = tokens
     }
 
-    fun parse() : Expression? {
-        return try {
-            expression()
-        } catch (error: ParseError) {
-            return null
+    fun parse() : List<Statement> {
+        val statements: MutableList<Statement> = ArrayList<Statement>()
+        while (!isAtEnd()) {
+            statements.add(statement())
         }
+
+        return statements
     }
 
-    private fun expression() : Expression {
+    private fun expression() : Statement.Expression {
         return equality()
     }
 
@@ -137,7 +138,7 @@ class Parser(tokens: List<Token>) {
         }
 
         if (match(LEFT_PAREN)) {
-            val expression: Expression = expression()
+            val expression: Statement.Expression = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Expression.Grouping(expression)
         }
@@ -145,4 +146,21 @@ class Parser(tokens: List<Token>) {
         throw error(peek(), "Expect expression.")
     }
 
+    private fun statement() : Statement {
+        if (match(PRINT)) return printStatement()
+
+        return expressionStatement();
+    }
+
+    private fun printStatement() : Statement {
+        val value: Statement.Expression = expression()
+        consume(SEMICOLON, "Expect ':' after value.")
+        return Statement.Print(value)
+    }
+
+    private fun expressionStatement(): Statement {
+        val expr: Statement.Expression = expression()
+        consume(SEMICOLON, "Expect ';' after expression.")
+        return Statement.Expression(expr)
+    }
 }

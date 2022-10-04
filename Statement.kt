@@ -1,6 +1,6 @@
 import Expression.*
 
-internal abstract class Statement {
+abstract class Statement {
     internal interface Visitor<R> {
         fun visitBlockStmt(stmt: Block): R
         fun visitClassStmt(stmt: Class): R

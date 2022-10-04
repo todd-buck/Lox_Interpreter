@@ -25,6 +25,11 @@ object GenerateAst {
             "Unary    : Token operator, Expr right"
             )
         )
+
+        defineAst(outputDir, "Stmt", listOf(
+            "Expression : Expr expression",
+            "Print      : Expr expression"
+        ))
     }
 
     @Throws(IOException::class)

@@ -1,3 +1,5 @@
+import com.craftinginterpreters.lox.Interpreter
+import com.craftinginterpreters.lox.RuntimeError
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -8,8 +10,12 @@ import kotlin.system.exitProcess
 
 
 object Lox {
+    private val interpreter: Interpreter = Interpreter()
+
     @JvmStatic
     var hadError : Boolean = false
+    var hadRuntimeError = false
+
 
     @Throws(IOException::class)
     @JvmStatic
@@ -30,6 +36,7 @@ object Lox {
         val bytes = Files.readAllBytes(Paths.get(path))
         run(String(bytes, Charset.defaultCharset()))
         if(hadError) exitProcess(65)
+        if (hadRuntimeError) System.exit(70);
     }
 
     @Throws(IOException::class)
@@ -56,6 +63,10 @@ object Lox {
 
         if(hadError) return
 
+        if (expression != null) {
+            interpreter.interpret(expression)
+        };
+
         println(expression?.let { ASTPrinter().print(it) })
     }
 
@@ -76,5 +87,15 @@ object Lox {
         } else {
             report(token.line, " at '" + token.lexeme + "'", message)
         }
+    }
+
+    fun runtimeError(error: RuntimeError) {
+        System.err.println(
+            """
+            ${error.message}
+            [line ${error.token.line}]
+            """.trimIndent()
+        )
+        hadRuntimeError = true
     }
 }

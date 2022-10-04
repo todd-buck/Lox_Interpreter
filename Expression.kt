@@ -74,7 +74,7 @@ abstract class Expression {
         }
     }
 
-    class Grouping(expression: Expression) : Expression() {
+    class Grouping(expression: Statement.Expression) : Expression() {
         override fun <R> accept(visitor: Visitor<R>) : R {
             return visitor.visitGroupingExpr(this)
         }

@@ -1,9 +1,10 @@
 package unitTesting
 
-import org.junit.Test
+//import org.junit.Test
 import Lox.main
 import Scanner
 import TokenType
+import org.junit.jupiter.api.Test
 
 class ScannerTests {
     //TODO: Verify that Scanner() should be reading last empty token (for EOF)
@@ -177,7 +178,7 @@ class ScannerTests {
     fun fileInput_NULL_RUN() {
         val path = arrayOf("unitTesting/InputFiles/null.txt")
         println("\nNULL TEST FROM FILE (\"\"):")
-        main(path)
+        //main(path)
 
     }
 
