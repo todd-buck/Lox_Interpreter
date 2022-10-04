@@ -19,8 +19,8 @@ abstract class Expression {
             return visitor.visitAssignExpr(this)
         }
 
-        private val name: Token
-        private val value: Expression
+        val name: Token
+        internal val value: Expression
 
         init {
             this.name = name
@@ -172,7 +172,7 @@ abstract class Expression {
             return visitor.visitVariableExpr(this)
         }
 
-        private val name: Token
+        val name: Token
 
         init {
             this.name = name

@@ -14,14 +14,51 @@ class Parser(tokens: List<Token>) {
     fun parse() : List<Statement> {
         val statements: MutableList<Statement> = ArrayList<Statement>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            statements.add(declaration())
         }
 
         return statements
     }
 
+    private fun declaration(): Statement {
+        return try {
+            if (match(VAR)) varDeclaration() else statement()
+        } catch (error: ParseError) {
+            synchronize()
+            return varDeclaration()
+        }
+    }
+
+    private fun varDeclaration(): Statement {
+        val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
+
+        val initializer: Statement.Expression;
+        if (match(EQUAL)) {
+            initializer = expression()
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.")
+        return Statement.Var(name, initializer)
+    }
+
     private fun expression() : Statement.Expression {
-        return equality()
+        return assignment()
+    }
+
+    private fun assignment(): Statement.Expression {
+        val expr: Expression = equality()
+
+        if (match(EQUAL)) {
+            val equals = previous()
+            val value: Statement.Expression = assignment()
+            if (expr is Expression.Variable) {
+                val name: Token = (expr as Expression.Variable).name
+                return Expression.Assign(name, value)
+            }
+            error(equals, "Invalid assignment target.")
+        }
+
+        return expr
     }
 
     private fun equality(): Expression {
@@ -137,6 +174,10 @@ class Parser(tokens: List<Token>) {
             return Expression.Literal()
         }
 
+        if (match(TokenType.IDENTIFIER)) {
+            return Expression.Variable(previous())
+        }
+
         if (match(LEFT_PAREN)) {
             val expression: Statement.Expression = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
@@ -148,8 +189,20 @@ class Parser(tokens: List<Token>) {
 
     private fun statement() : Statement {
         if (match(PRINT)) return printStatement()
+        if (match(LEFT_BRACE)) Statement.Block(block())
 
-        return expressionStatement();
+
+        return expressionStatement()
+
+    }
+
+    private fun block(): List<Statement> {
+        val statements: MutableList<Statement> = ArrayList<Statement>()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration())
+        }
+        consume(RIGHT_BRACE, "Expect '}' after block.")
+        return statements
     }
 
     private fun printStatement() : Statement {

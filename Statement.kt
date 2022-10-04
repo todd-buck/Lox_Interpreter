@@ -7,25 +7,25 @@ abstract class Statement {
         fun visitExpressionStmt(stmt: Expression): R
         fun visitFunctionStmt(stmt: Function): R
         fun visitIfStmt(stmt: If): R
-        fun visitPrintStmt(stmt: Print): R
+        fun visitPrintStmt(stmt: Print): Void?
         fun visitReturnStmt(stmt: Return): R
         fun visitVarStmt(stmt: Var): R
         fun visitWhileStmt(stmt: While): R
     }
 
-    internal class Block(statements: Statement) : Statement() {
+    class Block(statements: Statement) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitBlockStmt(this)
         }
 
-        private val statements: Statement
+        val statements: Statement
 
         init {
             this.statements = statements
         }
     }
 
-    internal class Class(name: Token, superclass: Variable, methods: List<Function>) : Statement() {
+    class Class(name: Token, superclass: Variable, methods: List<Function>) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitClassStmt(this)
         }
@@ -41,7 +41,7 @@ abstract class Statement {
         }
     }
 
-    internal class Expression(expression: Expression) : Statement() {
+    class Expression(expression: Expression) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitExpressionStmt(this)
         }
@@ -53,7 +53,7 @@ abstract class Statement {
         }
     }
 
-    internal class Function(name: Token, params: List<Token>, body: List<Statement>) : Statement() {
+    class Function(name: Token, params: List<Token>, body: List<Statement>) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitFunctionStmt(this)
         }
@@ -69,7 +69,7 @@ abstract class Statement {
         }
     }
 
-    internal class If(condition: Expression, thenBranch: Statement, elseBranch: Statement) : Statement() {
+    class If(condition: Expression, thenBranch: Statement, elseBranch: Statement) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitIfStmt(this)
         }
@@ -85,19 +85,19 @@ abstract class Statement {
         }
     }
 
-    internal class Print(expression: Expression) : Statement() {
+    class Print(expression: Expression) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitPrintStmt(this)
         }
 
-        private val expression: Expression
+        internal val expression: Expression
 
         init {
             this.expression = expression
         }
     }
 
-    internal class Return(keyword: Token, value: Expression) : Statement() {
+    class Return(keyword: Token, value: Expression) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitReturnStmt(this)
         }
@@ -111,13 +111,13 @@ abstract class Statement {
         }
     }
 
-    internal class Var(name: Token, initializer: Expression) : Statement() {
+    class Var(name: Token, initializer: Expression) : Statement() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitVarStmt(this)
         }
 
-        private val name: Token
-        private val initializer: Expression
+        val name: Token
+        val initializer: Expression
 
         init {
             this.name = name

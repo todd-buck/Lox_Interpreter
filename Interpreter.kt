@@ -1,14 +1,19 @@
 package com.craftinginterpreters.lox
 
 import Expression
-import Lox
+import Lox.runtimeError
+import Statement
 import Token
 import TokenType
 
 
-class Interpreter : Expression.Visitor<Any> {
+class Interpreter : Expression.Visitor<Any>, Statement.Visitor<Void> {
+    private var environment = Environment()
+
     override fun visitAssignExpr(expression: Expression.Assign): Any {
-        TODO("Not yet implemented")
+        val value = evaluate(expression.value)
+        environment.assign(expression.name, value)
+        return value
     }
 
     override fun visitBinaryExpr(expression: Expression.Binary): Any {
@@ -111,11 +116,70 @@ class Interpreter : Expression.Visitor<Any> {
     }
 
     override fun visitVariableExpr(expression: Expression.Variable): Any {
-        TODO("Not yet implemented")
+        return environment.get(expression.name)!!;
     }
 
     private fun evaluate(expression: Expression): Any {
         return expression.accept(this)
+    }
+
+    override fun visitBlockStmt(stmt: Statement.Block): Void {
+        executeBlock(stmt.statements, Environment(environment));
+    }
+
+    fun executeBlock(
+        statements: Statement,
+        environment: Environment?
+    ) {
+        val previous = this.environment
+        try {
+            this.environment = environment!!
+            for (statement in statements) {
+                execute(statement)
+            }
+        } finally {
+            this.environment = previous
+        }
+    }
+
+    override fun visitClassStmt(stmt: Statement.Class): Void {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitExpressionStmt(stmt: Statement.Expression): Void {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitFunctionStmt(stmt: Statement.Function): Void {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitIfStmt(stmt: Statement.If): Void {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitPrintStmt(stmt: Statement.Print): Void? {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
+        return null
+    }
+
+    override fun visitReturnStmt(stmt: Statement.Return): Void {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitVarStmt(stmt: Statement.Var): Void {
+        var value: Any? = null
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer)
+        }
+
+        environment.define(stmt.name.lexeme, value!!)
+        return null
+    }
+
+    override fun visitWhileStmt(stmt: Statement.While): Void {
+        TODO("Not yet implemented")
     }
 
     private fun isTruthy(any: Any): Boolean {
@@ -136,13 +200,18 @@ class Interpreter : Expression.Visitor<Any> {
         throw RuntimeError(operator, "Operands must be numbers.")
     }
 
-    fun interpret(expression: Expression) {
+    fun interpret(statements: List<Statement>) {
         try {
-            val value = evaluate(expression)
-            System.out.println(stringify(value))
+            for (statement in statements) {
+                execute(statement)
+            }
         } catch (error: RuntimeError) {
-            Lox.runtimeError(error)
+            runtimeError(error)
         }
+    }
+
+    private fun execute(stmt: Statement) {
+        stmt.accept(this)
     }
 
     private fun stringify(obj: Any?): String {
