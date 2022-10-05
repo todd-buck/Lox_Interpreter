@@ -1,3 +1,8 @@
+/*
+* THIS IS INCORRECT, IF WE ARE GOING TO USE IT WE NEED TO MODIFY IT TO GENERATE
+* KOTLIN CODE INSTEAD OF JAVA
+* */
+
 @file:Suppress("SameParameterValue")
 
 package tool
@@ -19,20 +24,20 @@ object GenerateAst {
         val outputDir = args[0]
 
         defineAst(outputDir, "Expr", listOf(
-            "Assign   : Token name, Expr value",
-            "Binary   : Expr left, Token operator, Expr right",
-            "Grouping : Expr expression",
-            "Literal  : Object value",
-            "Unary    : Token operator, Expr right",
-            "Variable : Token name"
+            "Assign   : name: Token, value: Expr",
+            "Binary   : left: Expr, operator: Token, right: Expr",
+            "Grouping : expression: Expr",
+            "Literal  : value: Object",
+            "Unary    : operator: Token, right: Expr",
+            "Variable : name: Token"
             )
         )
 
         defineAst(outputDir, "Stmt", listOf(
-            "Block      : List<Stmt> statements",
-            "Expression : Expr expression",
-            "Print      : Expr expression",
-            "Var        : Token name, Expr initializer"
+            "Block      : statements: List<Stmt>",
+            "Expression : expression: Expr",
+            "Print      : expression: Expr",
+            "Var        : name: Token, initializer: Expr"
         ))
     }
 

@@ -1,5 +1,3 @@
-import com.craftinginterpreters.lox.Interpreter
-import com.craftinginterpreters.lox.RuntimeError
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -14,7 +12,7 @@ object Lox {
 
     @JvmStatic
     var hadError : Boolean = false
-    var hadRuntimeError = false
+    private var hadRuntimeError = false
 
 
     @Throws(IOException::class)
@@ -36,7 +34,7 @@ object Lox {
         val bytes = Files.readAllBytes(Paths.get(path))
         run(String(bytes, Charset.defaultCharset()))
         if(hadError) exitProcess(65)
-        if (hadRuntimeError) System.exit(70);
+        if (hadRuntimeError) exitProcess(70)
     }
 
     @Throws(IOException::class)
@@ -59,26 +57,16 @@ object Lox {
         val tokens = scanner.scanTokens()
 
         val parser = Parser(tokens)
-        val expression : List<Statement> = parser.parse()
+        val statements : List<Stmt> = parser.parse()
 
         if(hadError) return
 
-        if (expression != null) {
-            interpreter.interpret(expression)
-        };
-
-        println(expression?.let { ASTPrinter().print(it) })
+        interpreter.interpret(statements)
     }
 
     @JvmStatic
     fun error(line: Int, message: String) {
         report(line, "", message)
-    }
-
-    @JvmStatic
-    private fun report(line: Int, where: String, message: String) {
-        System.err.println("[line $line] Error$where: $message")
-        hadError = true
     }
 
     fun error(token: Token, message: String) {
@@ -87,6 +75,12 @@ object Lox {
         } else {
             report(token.line, " at '" + token.lexeme + "'", message)
         }
+    }
+
+    @JvmStatic
+    private fun report(line: Int, where: String, message: String) {
+        System.err.println("[line $line] Error$where: $message")
+        hadError = true
     }
 
     fun runtimeError(error: RuntimeError) {

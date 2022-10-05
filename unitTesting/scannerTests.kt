@@ -1,6 +1,5 @@
 package unitTesting
 
-//import org.junit.Test
 import Lox.main
 import Scanner
 import TokenType
@@ -178,7 +177,7 @@ class ScannerTests {
     fun fileInput_NULL_RUN() {
         val path = arrayOf("unitTesting/InputFiles/null.txt")
         println("\nNULL TEST FROM FILE (\"\"):")
-        //main(path)
+        main(path)
 
     }
 

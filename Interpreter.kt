@@ -1,140 +1,190 @@
-package com.craftinginterpreters.lox
-
-import Expression
 import Lox.runtimeError
-import Statement
-import Token
-import TokenType
 
 
-class Interpreter : Expression.Visitor<Any>, Statement.Visitor<Void> {
+class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     private var environment = Environment()
 
-    override fun visitAssignExpr(expression: Expression.Assign): Any {
-        val value = evaluate(expression.value)
-        environment.assign(expression.name, value)
+    //Completed Expressions
+    override fun visitAssignExpr(expr: Expr.Assign): Any {
+        val value: Any = evaluate(expr.value)
+        environment.assign(expr.name, value)
         return value
     }
 
-    override fun visitBinaryExpr(expression: Expression.Binary): Any {
-        val left = evaluate(expression.left)
-        val right = evaluate(expression.right)
+    override fun visitBinaryExpr(expr: Expr.Binary): Any {
+        val left: Any = evaluate(expr.left)
+        val right: Any = evaluate(expr.right)
 
-        return when (expression.operator.type) {
+        when (expr.operator.type) {
             TokenType.MINUS -> {
-                checkNumberOperand(expression.operator, right)
-                return left as Double - right as Double
+                checkNumberOperand(expr.operator, right)
+                return (left as Double) - (right as Double)
             }
+
             TokenType.SLASH -> {
-                checkNumberOperands(expression.operator, left, right)
-                return left as Double / right as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) / (right as Double)
             }
+
             TokenType.STAR -> {
-                checkNumberOperands(expression.operator, left, right)
-                return left as Double * right as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) * (right as Double)
             }
+
             TokenType.PLUS -> {
                 if (left is Double && right is Double) return left + right
                 if (left is String && right is String) return left + right
                 throw RuntimeError(
-                    expression.operator,
+                    expr.operator,
                     "Operands must be two numbers or two strings."
                 )
             }
+
             TokenType.GREATER -> {
-                checkNumberOperands(expression.operator, left, right)
-                return left as Double > right as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) > (right as Double)
             }
+
             TokenType.GREATER_EQUAL -> {
-                checkNumberOperands(expression.operator, left, right)
-                return left as Double >= right as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) >= (right as Double)
             }
+
             TokenType.LESS -> {
-                checkNumberOperands(expression.operator, left, right)
-                return right as Double > left as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) < (right as Double)
             }
+
             TokenType.LESS_EQUAL -> {
-                checkNumberOperands(expression.operator, left, right)
-                return right as Double >= left as Double
+                checkNumberOperands(expr.operator, left, right)
+                return (left as Double) <= (right as Double)
             }
+
             TokenType.BANG_EQUAL -> return !isEqual(left, right)
+
             TokenType.EQUAL_EQUAL -> return isEqual(left, right)
+
             else -> {
                 return Unit
             }
         }
     }
 
+    override fun visitGroupingExpr(expr: Expr.Grouping): Any {
+        return evaluate(expr.expression)
+    }
+
+    override fun visitLiteralExpr(expr: Expr.Literal): Any {
+        return expr.value
+    }
+
+    //ch 9
+    override fun visitLogicalExpr(expr: Expr.Logical): Any {
+        val left: Any = evaluate(expr.left)
+
+        if(expr.operator.type == TokenType.OR) {
+            if(isTruthy(left)) return left
+        } else {
+            if(!isTruthy(left)) return left
+        }
+
+        return evaluate(expr.right)
+    }
+    //
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any {
+        return environment[expr.name]
+    }
+
+    //FIXME: Evaluate use of 'Unit' for return value
+    override fun visitUnaryExpr(expr: Expr.Unary): Any {
+        val right: Any = evaluate(expr.right)
+
+        return when (expr.operator.type) {
+            TokenType.MINUS -> -(right as Double)
+            TokenType.BANG -> !isTruthy(right)
+            else -> {
+                return Unit
+            }
+        }
+    }
+
+    //Completed Statements
+    override fun visitBlockStmt(stmt: Stmt.Block) {
+        executeBlock(stmt.statements, Environment(environment))
+        return
+    }
+
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
+        evaluate(stmt.expression)
+        return
+    }
+
+    //ch 9
+    override fun visitIfStmt(stmt: Stmt.If) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch)
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch)
+        }
+        return
+    }
+    //
+
+    override fun visitPrintStmt(stmt: Stmt.Print) {
+        val value: Any = evaluate(stmt.expression)
+        println(stringify(value))
+        return
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        var value: Any? = null
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer)
+        }
+
+
+        if (value != null) {
+            environment.define(stmt.name.lexeme, value)
+        }
+
+
+        return
+    }
+
+    //ch 9
+    override fun visitWhileStmt(stmt: Stmt.While) {
+        while(isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body)
+        }
+        return
+    }
+    //
+
+    //Helpers
     private fun checkNumberOperand(operator: Token, right: Any) {
         if (right is Double) return
         throw RuntimeError(operator, "Operand must be a number.")
     }
 
-    override fun visitCallExpr(expression: Expression.Call): Any {
-        TODO("Not yet implemented")
+    private fun checkNumberOperands(operator: Token, left: Any, right: Any) {
+        if (left is Double && right is Double) return
+        throw RuntimeError(operator, "Operands must be numbers.")
     }
 
-    override fun visitGetExpr(expression: Expression.Get): Any {
-        TODO("Not yet implemented")
+    private fun evaluate(expr: Expr): Any {
+        return expr.accept(this)
     }
 
-    override fun visitGroupingExpr(expression: Expression.Grouping): Any {
-        return evaluate(expression.expression)
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
     }
 
-    override fun visitLiteralExpr(expression: Expression.Literal): Any {
-        return expression.value!!
-
-    }
-
-    override fun visitLogicalExpr(expression: Expression.Logical): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitSetExpr(expression: Expression.Set): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitSuperExpr(expression: Expression.Super): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitThisExpr(expression: Expression.This): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitUnaryExpr(expression: Expression.Unary): Any {
-        val right = evaluate(expression.right)
-
-        when (expression.operator.type) {
-            TokenType.MINUS -> return right
-            TokenType.BANG -> return !isTruthy(right)
-            else -> {
-                return Unit;
-            }
-        }
-    }
-
-    override fun visitVariableExpr(expression: Expression.Variable): Any {
-        return environment.get(expression.name)!!;
-    }
-
-    private fun evaluate(expression: Expression): Any {
-        return expression.accept(this)
-    }
-
-    override fun visitBlockStmt(stmt: Statement.Block): Void {
-        executeBlock(stmt.statements, Environment(environment));
-    }
-
-    fun executeBlock(
-        statements: Statement,
-        environment: Environment?
-    ) {
-        val previous = this.environment
+    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+        val previous: Environment = this.environment
         try {
-            this.environment = environment!!
-            for (statement in statements) {
+            this.environment = environment
+            for(statement: Stmt in statements) {
                 execute(statement)
             }
         } finally {
@@ -142,50 +192,10 @@ class Interpreter : Expression.Visitor<Any>, Statement.Visitor<Void> {
         }
     }
 
-    override fun visitClassStmt(stmt: Statement.Class): Void {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitExpressionStmt(stmt: Statement.Expression): Void {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitFunctionStmt(stmt: Statement.Function): Void {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitIfStmt(stmt: Statement.If): Void {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitPrintStmt(stmt: Statement.Print): Void? {
-        val value = evaluate(stmt.expression)
-        println(stringify(value))
-        return null
-    }
-
-    override fun visitReturnStmt(stmt: Statement.Return): Void {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitVarStmt(stmt: Statement.Var): Void {
-        var value: Any? = null
-        if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer)
-        }
-
-        environment.define(stmt.name.lexeme, value!!)
-        return null
-    }
-
-    override fun visitWhileStmt(stmt: Statement.While): Void {
-        TODO("Not yet implemented")
-    }
-
+    //FIXME: Review accuracy of logic
     private fun isTruthy(any: Any): Boolean {
-        if (any is Unit) return false
-        if (any is Boolean) return any as Boolean
-        return true
+        if (any is Boolean) return any
+        return false
     }
 
     private fun isEqual(a: Any, b: Any): Boolean {
@@ -195,29 +205,19 @@ class Interpreter : Expression.Visitor<Any>, Statement.Visitor<Void> {
         return a == b
     }
 
-    private fun checkNumberOperands(operator: Token, left: Any, right: Any) {
-        if (left is Double && right is Double) return
-        throw RuntimeError(operator, "Operands must be numbers.")
-    }
-
-    fun interpret(statements: List<Statement>) {
+    fun interpret(statements: List<Stmt>) {
         try {
-            for (statement in statements) {
+            for(statement: Stmt in statements)
                 execute(statement)
-            }
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
     }
 
-    private fun execute(stmt: Statement) {
-        stmt.accept(this)
-    }
-
     private fun stringify(obj: Any?): String {
         if (obj == null) return "nil"
         if (obj is Double) {
-            var text = obj.toString()
+            var text: String = obj.toString()
             if (text.endsWith(".0")) {
                 text = text.substring(0, text.length - 2)
             }
@@ -225,4 +225,43 @@ class Interpreter : Expression.Visitor<Any>, Statement.Visitor<Void> {
         }
         return obj.toString()
     }
+
+    /////////////////////////////////////////////////////////////////////
+    //Unfinished Expressions
+
+    override fun visitCallExpr(expr: Expr.Call): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitGetExpr(expr: Expr.Get): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitSuperExpr(expr: Expr.Super): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitThisExpr(expr: Expr.This): Any {
+        TODO("Not yet implemented")
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    //Unfinished Statements
+
+    override fun visitClassStmt(stmt: Stmt.Class): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitReturnStmt(stmt: Stmt.Return): Any {
+        TODO("Not yet implemented")
+    }
+
 }

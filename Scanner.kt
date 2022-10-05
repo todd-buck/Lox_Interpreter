@@ -26,18 +26,72 @@ internal class Scanner(private val source: String) {
                 "while" to TokenType.WHILE
             )
 
-    fun scanTokens() : List<Token> {
-        while (!isAtEnd()) {
-            start = current
-            scanToken()
-        }
+    private fun addToken(type: TokenType) {
+        addToken(type, null)
+    }
 
-        tokens.add(Token(TokenType.EOF, "", null, line))
-        return tokens
+    private fun addToken(type: TokenType, literal: Any?) {
+        val text = source.substring(start, current)
+        tokens.add(Token(type, text, literal, line))
+    }
+
+    private fun advance() : Char {
+        return source[current++]
+    }
+
+    private fun identifier() {
+        while(isAlphaNumeric(peek())) advance()
+
+        val text : String = source.substring(start, current)
+        var type : TokenType? = keywords[text]
+        if(type == null) type = TokenType.IDENTIFIER
+
+        addToken(type)
+    }
+
+    private fun isAlpha(c: Char) : Boolean {
+        return (c in 'a'..'z') || (c in 'A'..'Z') || (c == '_')
+    }
+
+    private fun isAlphaNumeric(c: Char) : Boolean {
+        return isAlpha(c) || isDigit(c)
     }
 
     private fun isAtEnd() : Boolean {
         return current >= source.length
+    }
+
+    private fun isDigit(c: Char) : Boolean {
+        return c in '0'..'9'
+    }
+
+    private fun match(expected: Char) : Boolean {
+        if(isAtEnd()) return false
+        if(source[current] != expected) return false
+
+        current++
+        return true
+    }
+
+    private fun number() {
+        while(isDigit(peek())) advance()
+
+        if(peek() == '.' && isDigit(peekNext()))
+            advance()
+        while(isDigit(peek())) advance()
+
+
+        addToken(TokenType.NUMBER, (source.substring(start, current)).toDouble())
+    }
+
+    private fun peek() : Char {
+        if(isAtEnd()) return '\u0000'
+        return source[current]
+    }
+
+    private fun peekNext() : Char {
+        if(current + 1 >= source.length) return '\u0000'
+        return source[current + 1]
     }
 
     //FIXME: Determine if 'break' is implied in Kotlin switch statement, add to each line if not implicit
@@ -72,35 +126,19 @@ internal class Scanner(private val source: String) {
 
 
             else -> if(isDigit(c)) number()
-                    else if (isAlpha(c)) identifier()
-                    else Lox.error(line, "Unexpected character.")
+            else if (isAlpha(c)) identifier()
+            else Lox.error(line, "Unexpected character.")
         }
     }
 
-    private fun advance() : Char {
-        return source[current++]
-    }
+    fun scanTokens() : List<Token> {
+        while (!isAtEnd()) {
+            start = current
+            scanToken()
+        }
 
-    private fun addToken(type: TokenType) {
-        addToken(type, null)
-    }
-
-    private fun addToken(type: TokenType, literal: Any?) {
-        val text = source.substring(start, current)
-        tokens.add(Token(type, text, literal, line))
-    }
-
-    private fun match(expected: Char) : Boolean {
-        if(isAtEnd()) return false
-        if(source[current] != expected) return false
-
-        current++
-        return true
-    }
-
-    private fun peek() : Char {
-        if(isAtEnd()) return '\u0000'
-        return source[current]
+        tokens.add(Token(TokenType.EOF, "", null, line))
+        return tokens
     }
 
     private fun string() {
@@ -118,43 +156,6 @@ internal class Scanner(private val source: String) {
         addToken(TokenType.STRING, value)
     }
 
-    private fun isDigit(c: Char) : Boolean {
-        return c in '0'..'9'
-    }
-
-    private fun number() {
-        while(isDigit(peek())) advance()
-
-        if(peek() == '.' && isDigit(peekNext()))
-            advance()
-            while(isDigit(peek())) advance()
-
-
-        addToken(TokenType.NUMBER, (source.substring(start, current)).toDouble())
-    }
-
-    private fun peekNext() : Char {
-        if(current + 1 >= source.length) return '\u0000'
-        return source[current + 1]
-    }
-
-    private fun identifier() {
-        while(isAlphaNumeric(peek())) advance()
-
-        val text : String = source.substring(start, current)
-        var type : TokenType? = keywords[text]
-        if(type == null) type = TokenType.IDENTIFIER
-
-        addToken(type)
-    }
-
-    private fun isAlpha(c: Char) : Boolean {
-        return (c in 'a'..'z') || (c in 'A'..'Z') || (c == '_')
-    }
-
-    private fun isAlphaNumeric(c: Char) : Boolean {
-        return isAlpha(c) || isDigit(c)
-    }
 }
 
 

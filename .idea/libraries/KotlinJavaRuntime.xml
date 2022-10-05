@@ -1,6 +1,6 @@
 <component name="libraryTable">
   <library name="KotlinJavaRuntime" type="repository">
-    <properties maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10" />
+    <properties maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.20" />
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.7.10/kotlin-stdlib-jdk8-1.7.10.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.7.10/kotlin-stdlib-1.7.10.jar!/" />

@@ -1,26 +1,26 @@
-abstract class Expression {
+abstract class Expr {
     interface Visitor<R> {
-        fun visitAssignExpr(expression: Assign): R
-        fun visitBinaryExpr(expression: Binary): R
-        fun visitCallExpr(expression: Call): R
-        fun visitGetExpr(expression: Get): R
-        fun visitGroupingExpr(expression: Grouping): R
-        fun visitLiteralExpr(expression: Literal): R
-        fun visitLogicalExpr(expression: Logical): R
-        fun visitSetExpr(expression: Set): R
-        fun visitSuperExpr(expression: Super): R
-        fun visitThisExpr(expression: This): R
-        fun visitUnaryExpr(expression: Unary): R
-        fun visitVariableExpr(expression: Variable): R
+        fun visitAssignExpr(expr: Assign): R
+        fun visitBinaryExpr(expr: Binary): R
+        fun visitCallExpr(expr: Call): R
+        fun visitGetExpr(expr: Get): R
+        fun visitGroupingExpr(expr: Grouping): R
+        fun visitLiteralExpr(expr: Literal): R
+        fun visitLogicalExpr(expr: Logical): R
+        fun visitSetExpr(expr: Set): R
+        fun visitSuperExpr(expr: Super): R
+        fun visitThisExpr(expr: This): R
+        fun visitUnaryExpr(expr: Unary): R
+        fun visitVariableExpr(expr: Variable): R
     }
 
-    class Assign(name: Token, value: Expression) : Expression() {
+    class Assign(name: Token, value: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitAssignExpr(this)
         }
 
         val name: Token
-        internal val value: Expression
+        val value: Expr
 
         init {
             this.name = name
@@ -28,14 +28,14 @@ abstract class Expression {
         }
     }
 
-    class Binary(left: Expression, operator: Token, right: Expression) : Expression() {
+    class Binary(left: Expr, operator: Token, right: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitBinaryExpr(this)
         }
 
-        val left: Expression
+        val left: Expr
         val operator: Token
-        val right: Expression
+        val right: Expr
 
         init {
             this.left = left
@@ -44,14 +44,14 @@ abstract class Expression {
         }
     }
 
-    class Call(callee: Expression, paren: Token, arguments: List<Expression>) : Expression() {
+    class Call(callee: Expr, paren: Token, arguments: List<Expr>) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitCallExpr(this)
         }
 
-        private val callee: Expression
+        private val callee: Expr
         private val paren: Token
-        private val arguments: List<Expression>
+        private val arguments: List<Expr>
 
         init {
             this.callee = callee
@@ -60,12 +60,12 @@ abstract class Expression {
         }
     }
 
-    class Get(obj: Expression, name: Token) : Expression() {
+    class Get(obj: Expr, name: Token) : Expr() {
         override fun <R> accept(visitor: Visitor<R>) : R {
             return visitor.visitGetExpr(this)
         }
 
-        private val obj: Expression
+        private val obj: Expr
         private val name: Token
 
         init {
@@ -74,34 +74,40 @@ abstract class Expression {
         }
     }
 
-    class Grouping(expression: Statement.Expression) : Expression() {
+    class Grouping(expression: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>) : R {
             return visitor.visitGroupingExpr(this)
         }
 
-        val expression: Expression
+        val expression: Expr
 
         init {
             this.expression = expression
         }
     }
 
-    class Literal : Expression() {
+    class Literal(value: Any?) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitLiteralExpr(this)
         }
 
-        val value : Any? = null
+        var value : Any = Unit
+
+        init {
+            if (value != null) {
+                this.value = value
+            }
+        }
     }
 
-    class Logical(left: Expression, operator: Token, right: Expression) : Expression() {
+    class Logical(left: Expr, operator: Token, right: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitLogicalExpr(this)
         }
 
-        private val left: Expression
-        private val operator: Token
-        private val right: Expression
+        val left: Expr
+        val operator: Token
+        val right: Expr
 
         init {
             this.left = left
@@ -110,14 +116,14 @@ abstract class Expression {
         }
     }
 
-    class Set(obj: Expression, name: Token, value: Expression) : Expression() {
+    class Set(obj: Expr, name: Token, value: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitSetExpr(this)
         }
 
-        private val obj: Expression
+        private val obj: Expr
         private val name: Token
-        private val value: Expression
+        private val value: Expr
 
         init {
             this.obj = obj
@@ -127,7 +133,7 @@ abstract class Expression {
 
     }
 
-    class Super(keyword: Token, method: Token) : Expression() {
+    class Super(keyword: Token, method: Token) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitSuperExpr(this)
         }
@@ -141,7 +147,7 @@ abstract class Expression {
         }
     }
 
-    class This(keyword: Token) : Expression() {
+    class This(keyword: Token) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitThisExpr(this)
         }
@@ -153,13 +159,13 @@ abstract class Expression {
         }
     }
 
-    class Unary(operator: Token, right: Expression) : Expression() {
+    class Unary(operator: Token, right: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitUnaryExpr(this)
         }
 
         val operator: Token
-        val right: Expression
+        val right: Expr
 
         init {
             this.operator = operator
@@ -167,7 +173,7 @@ abstract class Expression {
         }
     }
 
-    class Variable(name: Token) : Expression() {
+    class Variable(name: Token) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitVariableExpr(this)
         }

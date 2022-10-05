@@ -2,8 +2,7 @@ class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
     val type: TokenType
     val lexeme: String
 
-    //FIXME: Review use of ANY? instead of ANY
-    private val literal: Any?
+    val literal: Any?
     val line: Int
 
     init {
@@ -13,8 +12,9 @@ class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
         this.line = line
     }
 
-    override fun toString(): String {
-        return "$type $lexeme $literal"
+    @JvmName("getLexeme1")
+    fun getLexeme(): String {
+        return this.lexeme
     }
 
     @JvmName("getType1")
@@ -22,9 +22,8 @@ class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
         return this.type
     }
 
-    @JvmName("getLexeme1")
-    fun getLexeme(): String {
-        return this.lexeme
+    override fun toString(): String {
+        return "$type $lexeme $literal"
     }
 
 }
