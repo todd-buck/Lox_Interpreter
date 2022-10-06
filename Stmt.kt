@@ -102,7 +102,7 @@ abstract class Stmt {
             return visitor.visitReturnStmt(this)
         }
 
-        private val keyword: Token
+        val keyword: Token
         val value: Expr?
 
         init {

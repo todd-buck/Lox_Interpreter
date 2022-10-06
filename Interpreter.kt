@@ -2,8 +2,9 @@ import Lox.runtimeError
 
 
 class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
-    val globals: Environment = Environment()
+    private val globals: Environment = Environment()
     private var environment: Environment = globals
+    private val locals: HashMap<Expr, Int> = HashMap()
 
     init {
         globals.define("clock", object : LoxCallable {
@@ -24,7 +25,14 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     //Completed Expressions
     override fun visitAssignExpr(expr: Expr.Assign): Any {
         val value: Any = evaluate(expr.value)
-        environment.assign(expr.name, value)
+        val distance: Int? = locals[expr]
+
+        if(distance != null) {
+            environment.assignAt(distance, expr.name, value)
+        } else {
+            globals.assign(expr.name, value)
+        }
+
         return value
     }
 
@@ -127,7 +135,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any {
-        return environment[expr.name]!!
+        return lookUpVariable(expr.name, expr)!!
     }
 
     //FIXME: Evaluate use of 'Unit' for return value
@@ -254,6 +262,19 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
+    }
+
+    private fun lookUpVariable(name: Token, expr: Expr): Any? {
+        val distance: Int? = locals[expr]
+        if(distance != null) {
+            return environment.getAt(distance, name.lexeme)
+        } else {
+            return globals[name]
+        }
+    }
+
+    fun resolve(expr: Expr, depth: Int) {
+        locals[expr] = depth
     }
 
     private fun stringify(obj: Any?): String {

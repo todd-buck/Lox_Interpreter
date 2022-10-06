@@ -1,5 +1,5 @@
 class Environment {
-    var values: HashMap<String, Any?> = HashMap()
+    private var values: HashMap<String, Any?> = HashMap()
 
     private var enclosing: Environment? = null
 
@@ -9,6 +9,14 @@ class Environment {
 
     constructor(enclosing: Environment) {
         this.enclosing = enclosing
+    }
+
+    private fun ancestor(distance: Int): Environment? {
+        var environment: Environment? = this
+        for (i: Int in 0 until distance) {
+            environment = environment!!.enclosing
+        }
+        return environment
     }
 
     fun assign(name: Token, value: Any) {
@@ -25,6 +33,10 @@ class Environment {
         throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
     }
 
+    fun assignAt(distance: Int, name: Token, value: Any) {
+        ancestor(distance)!!.values[name.lexeme] = value
+    }
+
     fun define(name: String, value: Any?) {
         values[name] = value
     }
@@ -37,6 +49,10 @@ class Environment {
         if (enclosing != null) return enclosing!![name]
 
         throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
+    }
+
+    fun getAt(distance: Int, name: String?): Any? {
+        return ancestor(distance)!!.values[name]
     }
 
 
