@@ -1,7 +1,7 @@
 class Environment {
-    var values: HashMap<String, Any> = HashMap()
+    var values: HashMap<String, Any?> = HashMap()
 
-    var enclosing: Environment? = null
+    private var enclosing: Environment? = null
 
     constructor() {
         enclosing = null
@@ -25,13 +25,13 @@ class Environment {
         throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
     }
 
-    fun define(name: String, value: Any) {
+    fun define(name: String, value: Any?) {
         values[name] = value
     }
 
-    operator fun get(name: Token): Any {
+    operator fun get(name: Token): Any? {
         if (values.containsKey(name.lexeme)) {
-            return values[name.lexeme]!!
+            return values[name.lexeme]
         }
 
         if (enclosing != null) return enclosing!![name]

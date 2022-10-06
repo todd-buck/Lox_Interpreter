@@ -49,9 +49,9 @@ abstract class Expr {
             return visitor.visitCallExpr(this)
         }
 
-        private val callee: Expr
-        private val paren: Token
-        private val arguments: List<Expr>
+        val callee: Expr
+        val paren: Token
+        val arguments: List<Expr>
 
         init {
             this.callee = callee

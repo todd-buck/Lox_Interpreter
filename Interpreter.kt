@@ -2,7 +2,24 @@ import Lox.runtimeError
 
 
 class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
-    private var environment = Environment()
+    val globals: Environment = Environment()
+    private var environment: Environment = globals
+
+    init {
+        globals.define("clock", object : LoxCallable {
+            override fun arity(): Int {
+                return 0
+            }
+
+            override fun call(interpreter: Interpreter, arguments: List<Any>): Any {
+                return System.currentTimeMillis().toDouble() / 1000.0
+            }
+
+            override fun toString(): String {
+                return "<native fn>"
+            }
+        })
+    }
 
     //Completed Expressions
     override fun visitAssignExpr(expr: Expr.Assign): Any {
@@ -70,7 +87,26 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
     }
 
+    override fun visitCallExpr(expr: Expr.Call): Any {
+
+        val callee: Any = evaluate(expr.callee)
+        val arguments: MutableList<Any> = arrayListOf()
+
+        for(argument: Expr in expr.arguments) {
+            arguments.add(evaluate(argument))
+        }
+
+        if(callee !is LoxCallable) throw RuntimeError(expr.paren,"Can only call functions and classes.")
+
+        val function: LoxCallable = callee
+
+        if(arguments.size != function.arity()) throw RuntimeError(expr.paren, "Expected ${function.arity()} but got ${arguments.size}.")
+
+        return function.call(this, arguments)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Any {
+
         return evaluate(expr.expression)
     }
 
@@ -78,7 +114,6 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         return expr.value
     }
 
-    //ch 9
     override fun visitLogicalExpr(expr: Expr.Logical): Any {
         val left: Any = evaluate(expr.left)
 
@@ -90,10 +125,9 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
 
         return evaluate(expr.right)
     }
-    //
 
     override fun visitVariableExpr(expr: Expr.Variable): Any {
-        return environment[expr.name]
+        return environment[expr.name]!!
     }
 
     //FIXME: Evaluate use of 'Unit' for return value
@@ -120,7 +154,12 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         return
     }
 
-    //ch 9
+    override fun visitFunctionStmt(stmt: Stmt.Function) {
+        val function = LoxFunction(stmt, environment)
+        environment.define(stmt.name.lexeme, function)
+        return
+    }
+
     override fun visitIfStmt(stmt: Stmt.If) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch)
@@ -129,12 +168,20 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
         return
     }
-    //
 
     override fun visitPrintStmt(stmt: Stmt.Print) {
         val value: Any = evaluate(stmt.expression)
         println(stringify(value))
         return
+    }
+
+    override fun visitReturnStmt(stmt: Stmt.Return) {
+        var value: Any? = null
+
+        if(stmt.value != null) value = evaluate(stmt.value)
+
+        throw Return(value!!)
+
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
@@ -143,23 +190,17 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
             value = evaluate(stmt.initializer)
         }
 
-
-        if (value != null) {
-            environment.define(stmt.name.lexeme, value)
-        }
-
+        environment.define(stmt.name.lexeme, value)
 
         return
     }
 
-    //ch 9
     override fun visitWhileStmt(stmt: Stmt.While) {
         while(isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body)
         }
         return
     }
-    //
 
     //Helpers
     private fun checkNumberOperand(operator: Token, right: Any) {
@@ -180,7 +221,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         stmt.accept(this)
     }
 
-    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+    fun executeBlock(statements: List<Stmt>, environment: Environment) {
         val previous: Environment = this.environment
         try {
             this.environment = environment
@@ -207,8 +248,9 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
 
     fun interpret(statements: List<Stmt>) {
         try {
-            for(statement: Stmt in statements)
+            for(statement: Stmt in statements) {
                 execute(statement)
+            }
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
@@ -229,10 +271,6 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     /////////////////////////////////////////////////////////////////////
     //Unfinished Expressions
 
-    override fun visitCallExpr(expr: Expr.Call): Any {
-        TODO("Not yet implemented")
-    }
-
     override fun visitGetExpr(expr: Expr.Get): Any {
         TODO("Not yet implemented")
     }
@@ -252,15 +290,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     /////////////////////////////////////////////////////////////////////
     //Unfinished Statements
 
-    override fun visitClassStmt(stmt: Stmt.Class): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitFunctionStmt(stmt: Stmt.Function): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitReturnStmt(stmt: Stmt.Return): Any {
+    override fun visitClassStmt(stmt: Stmt.Class) {
         TODO("Not yet implemented")
     }
 

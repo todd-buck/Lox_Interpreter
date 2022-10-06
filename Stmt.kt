@@ -58,9 +58,9 @@ abstract class Stmt {
             return visitor.visitFunctionStmt(this)
         }
 
-        private val name: Token
-        private val params: List<Token>
-        private val body: List<Stmt>
+        val name: Token
+        val params: List<Token>
+        val body: List<Stmt>
 
         init {
             this.name = name
@@ -69,14 +69,14 @@ abstract class Stmt {
         }
     }
 
-    class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) : Stmt() {
+    class If(condition: Expr, thenBranch: Stmt, elseBranch: Stmt?) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitIfStmt(this)
         }
 
         val condition: Expr
         val thenBranch: Stmt
-        val elseBranch: Stmt
+        val elseBranch: Stmt?
 
         init {
             this.condition = condition
@@ -103,7 +103,7 @@ abstract class Stmt {
         }
 
         private val keyword: Token
-        private val value: Expr
+        val value: Expr?
 
         init {
             this.keyword = keyword
