@@ -1,7 +1,6 @@
 class Environment {
-    private var values: HashMap<String, Any?> = HashMap()
-
-    private var enclosing: Environment? = null
+    private var values: MutableMap<String, Any?> = hashMapOf()
+    var enclosing: Environment?
 
     constructor() {
         enclosing = null
@@ -11,11 +10,13 @@ class Environment {
         this.enclosing = enclosing
     }
 
-    private fun ancestor(distance: Int): Environment? {
-        var environment: Environment? = this
+    private fun ancestor(distance: Int): Environment {
+        var environment: Environment = this
+
         for (i: Int in 0 until distance) {
-            environment = environment!!.enclosing
+            environment = environment.enclosing!!
         }
+
         return environment
     }
 
@@ -34,7 +35,7 @@ class Environment {
     }
 
     fun assignAt(distance: Int, name: Token, value: Any) {
-        ancestor(distance)!!.values[name.lexeme] = value
+        ancestor(distance).values[name.lexeme] = value
     }
 
     fun define(name: String, value: Any?) {
@@ -52,8 +53,7 @@ class Environment {
     }
 
     fun getAt(distance: Int, name: String?): Any? {
-        return ancestor(distance)!!.values[name]
+        return ancestor(distance).values[name]
     }
-
 
 }

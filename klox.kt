@@ -31,7 +31,7 @@ object Lox {
     @Throws(IOException::class)
     @JvmStatic
     private fun runFile(path: String) {
-        val bytes = Files.readAllBytes(Paths.get(path))
+        val bytes: ByteArray = Files.readAllBytes(Paths.get(path))
         run(String(bytes, Charset.defaultCharset()))
         if(hadError) exitProcess(65)
         if (hadRuntimeError) exitProcess(70)

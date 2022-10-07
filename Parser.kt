@@ -3,21 +3,15 @@ import TokenType.*
 
 
 @Suppress("SameParameterValue")
-class Parser(tokens: List<Token>) {
+class Parser(private var tokens: List<Token>) {
     private class ParseError : RuntimeException()
-    private var tokens : List<Token> = emptyList()
     private var current : Int = 0
-
-    init {
-        this.tokens = tokens
-    }
 
     private fun advance(): Token {
         if (!isAtEnd()) current++
         return previous()
     }
 
-    //ch 9
     private fun and() : Expr {
         var expr: Expr = equality()
 
@@ -29,7 +23,6 @@ class Parser(tokens: List<Token>) {
 
         return expr
     }
-    //
 
     private fun assignment(): Expr {
         val expr: Expr = or()
@@ -41,6 +34,9 @@ class Parser(tokens: List<Token>) {
             if (expr is Expr.Variable) {
                 val name: Token = expr.name
                 return Expr.Assign(name, value)
+            } else if(expr is Expr.Get) {
+                val get: Expr.Get = expr
+                return Expr.Set(get.obj, get.name, value)
             }
             error(equals, "Invalid assignment target.")
         }
@@ -48,11 +44,12 @@ class Parser(tokens: List<Token>) {
         return expr
     }
 
+    //Note: "as Stmt" could throw NullPointerException
     private fun block(): List<Stmt> {
         val statements: MutableList<Stmt> = arrayListOf()
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration()!!)
+            statements.add(declaration() as Stmt)
         }
 
         consume(RIGHT_BRACE, "Expect '}' after block.")
@@ -65,6 +62,9 @@ class Parser(tokens: List<Token>) {
         while(true) {
             if(match(LEFT_PAREN)) {
                 expr = finishCall(expr)
+            } else if(match(DOT)) {
+                val name: Token = consume(IDENTIFIER, "Expect property name after '.'.")
+                expr = Expr.Get(expr, name)
             } else {
                 break
             }
@@ -74,13 +74,35 @@ class Parser(tokens: List<Token>) {
     }
 
     private fun check(type: TokenType): Boolean {
-        return if (isAtEnd()) false else peek().type == type
+        return if (isAtEnd()) false else (peek().type == type)
+    }
+
+    private fun classDeclaration() : Stmt {
+        val name: Token = consume(IDENTIFIER,"Expect class name.")
+
+        var superclass: Expr.Variable? = null
+
+        if(match(LESS)) {
+            consume(IDENTIFIER,"Expect superclass name.")
+            superclass = Expr.Variable(previous())
+        }
+
+        consume(LEFT_BRACE,"Expect '{' before class body.")
+
+        val methods: MutableList<Stmt.Function> = arrayListOf()
+        while(!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"))
+        }
+
+        consume(RIGHT_BRACE,"Expect '}' after class body.")
+
+        return Stmt.Class(name, superclass ,methods)
     }
 
     private fun comparison(): Expr {
         var expr: Expr = term()
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-            val operator = previous()
+            val operator: Token = previous()
             val right: Expr = term()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -94,12 +116,13 @@ class Parser(tokens: List<Token>) {
 
     private fun declaration(): Stmt? {
         try {
+            if(match(CLASS)) return classDeclaration()
             if(match(FUN)) return function("function")
+            if(match(VAR)) return varDeclaration()
 
-            return if(match(VAR)) varDeclaration() else statement()
+            return statement()
         } catch (error: ParseError) {
             synchronize()
-            //FIXME: put something other than null
             return null
         }
     }
@@ -134,7 +157,7 @@ class Parser(tokens: List<Token>) {
     private fun factor(): Expr {
         var expr: Expr = unary()
         while (match(SLASH, STAR)) {
-            val operator = previous()
+            val operator: Token = previous()
             val right: Expr = unary()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -187,7 +210,6 @@ class Parser(tokens: List<Token>) {
         }
 
         if(condition == null) condition = Expr.Literal(true)
-
         body = Stmt.While(condition, body)
 
         if(initializer != null) {
@@ -210,6 +232,7 @@ class Parser(tokens: List<Token>) {
                 parameters.add(consume(IDENTIFIER, "Expect parameter name."))
             } while(match(COMMA))
         }
+
         consume(RIGHT_PAREN,"Expect ')' after parameters.")
 
         consume(LEFT_BRACE,"Expect '{' before $kind body.")
@@ -233,11 +256,11 @@ class Parser(tokens: List<Token>) {
     }
 
     private fun isAtEnd(): Boolean {
-        return peek().type === EOF
+        return (peek().type == EOF)
     }
 
     private fun match(vararg types: TokenType): Boolean {
-        for (type in types) {
+        for (type: TokenType in types) {
             if (check(type)) {
                 advance()
                 return true
@@ -279,19 +302,21 @@ class Parser(tokens: List<Token>) {
         if (match(FALSE)) return Expr.Literal(false)
         if (match(TRUE)) return Expr.Literal(true)
         if (match(NIL)) return Expr.Literal(null)
-
-        if (match(NUMBER, STRING)) {
-            return Expr.Literal(previous().literal)
-        }
-
-        if (match(IDENTIFIER)) {
-            return Expr.Variable(previous())
-        }
+        if (match(NUMBER, STRING)) return Expr.Literal(previous().literal)
+        if (match(THIS)) return Expr.This(previous())
+        if (match(IDENTIFIER)) return Expr.Variable(previous())
 
         if (match(LEFT_PAREN)) {
             val expr: Expr = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Expr.Grouping(expr)
+        }
+
+        if(match(SUPER)) {
+            val keyword: Token = previous()
+            consume(DOT,"Expect '.' after 'super'.")
+            val method: Token = consume(IDENTIFIER,"Expect superclass method name.")
+            return Expr.Super(keyword, method)
         }
 
         throw error(peek(), "Expect expression.")
@@ -312,17 +337,17 @@ class Parser(tokens: List<Token>) {
         }
 
         consume(SEMICOLON, "Expect ';' after return value.")
-        //FIXME: Make sure !! can be used
-        return Stmt.Return(keyword, value!!)
+
+        return Stmt.Return(keyword, value)
     }
 
     private fun statement() : Stmt {
         if(match(FOR)) return forStatement()
         if(match(IF)) return ifStatement()
-        if(match(LEFT_BRACE)) return Stmt.Block(block())
         if(match(PRINT)) return printStatement()
         if(match(RETURN)) return returnStatement()
         if(match(WHILE)) return whileStatement()
+        if(match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
     }
@@ -342,7 +367,7 @@ class Parser(tokens: List<Token>) {
     private fun term(): Expr {
         var expr: Expr = factor()
         while (match(MINUS, PLUS)) {
-            val operator = previous()
+            val operator: Token = previous()
             val right: Expr = factor()
             expr = Expr.Binary(expr, operator, right)
         }

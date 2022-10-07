@@ -1,6 +1,12 @@
-class LoxFunction(private val declaration: Stmt.Function, private val closure: Environment) : LoxCallable {
+class LoxFunction(private var declaration: Stmt.Function, private var closure: Environment, private var isInitializer: Boolean) : LoxCallable {
 
-    override fun call(interpreter: Interpreter, arguments: List<Any>) : Any {
+    fun bind(instance: LoxInstance) : LoxFunction {
+        val environment = Environment(closure)
+        environment.define("this", instance)
+        return LoxFunction(declaration, environment, isInitializer)
+    }
+
+    override fun call(interpreter: Interpreter, arguments: List<Any>) : Any? {
         val environment = Environment(closure)
 
         for (i: Int in 0 until declaration.params.size) {
@@ -10,12 +16,13 @@ class LoxFunction(private val declaration: Stmt.Function, private val closure: E
         try {
             interpreter.executeBlock(declaration.body, environment)
         } catch (returnValue: Return) {
+            if(isInitializer) return closure.getAt(0,"this")
             return returnValue.value
         }
 
+        if(isInitializer) return closure.getAt(0, "this")
 
-        //FIXME: should not return unit, specifies that null is returned in book
-        return Unit
+        return null
     }
 
     override fun arity(): Int {

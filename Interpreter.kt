@@ -1,10 +1,9 @@
 import Lox.runtimeError
 
-
 class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     private val globals: Environment = Environment()
     private var environment: Environment = globals
-    private val locals: HashMap<Expr, Int> = HashMap()
+    private val locals: MutableMap<Expr, Int> = HashMap()
 
     init {
         globals.define("clock", object : LoxCallable {
@@ -22,7 +21,6 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         })
     }
 
-    //Completed Expressions
     override fun visitAssignExpr(expr: Expr.Assign): Any {
         val value: Any = evaluate(expr.value)
         val distance: Int? = locals[expr]
@@ -42,7 +40,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
 
         when (expr.operator.type) {
             TokenType.MINUS -> {
-                checkNumberOperand(expr.operator, right)
+                checkNumberOperands(expr.operator, left, right)
                 return (left as Double) - (right as Double)
             }
 
@@ -95,7 +93,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
     }
 
-    override fun visitCallExpr(expr: Expr.Call): Any {
+    override fun visitCallExpr(expr: Expr.Call): Any? {
 
         val callee: Any = evaluate(expr.callee)
         val arguments: MutableList<Any> = arrayListOf()
@@ -113,13 +111,21 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         return function.call(this, arguments)
     }
 
-    override fun visitGroupingExpr(expr: Expr.Grouping): Any {
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val obj: Any = evaluate(expr.obj)
+        if(obj is LoxInstance) {
+            return obj.get(expr.name)
+        }
 
+        throw RuntimeError(expr.name,"Only instances have properties.")
+    }
+
+    override fun visitGroupingExpr(expr: Expr.Grouping): Any {
         return evaluate(expr.expression)
     }
 
     override fun visitLiteralExpr(expr: Expr.Literal): Any {
-        return expr.value
+        return expr.value as Any
     }
 
     override fun visitLogicalExpr(expr: Expr.Logical): Any {
@@ -134,16 +140,57 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         return evaluate(expr.right)
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Any {
-        return lookUpVariable(expr.name, expr)!!
+    override fun visitSetExpr(expr: Expr.Set): Any {
+        val obj: Any = evaluate(expr.obj)
+
+        if(obj !is LoxInstance) throw RuntimeError(expr.name,"Only instances have fields.")
+
+        val value: Any = evaluate(expr.value)
+        obj.set(expr.name, value)
+
+        return value
     }
 
-    //FIXME: Evaluate use of 'Unit' for return value
+    //Note: Deviations with nullable distance and non-nullable bind() call
+    override fun visitSuperExpr(expr: Expr.Super): Any {
+        val distance: Int? = locals[expr]
+        //FIXME: null distance could cause NullPointerExcept
+        val superclass: LoxClass? = environment.getAt(distance!!, "super") as LoxClass?
+        val obj: LoxInstance? = environment.getAt(distance - 1, "this") as LoxInstance?
+
+        println("distance == null: $distance")
+        println("superclass == null: ${superclass == null}")
+        println("expr.method.lexeme: ${expr.method.lexeme}")
+
+        val method: LoxFunction? = superclass?.findMethod(expr.method.lexeme)
+
+        if(method == null) throw RuntimeError(expr.method,"Undefined property '${expr.method.lexeme}'.")
+
+        return method.bind(obj!!)
+    }
+
+    override fun visitThisExpr(expr: Expr.This): Any? {
+        val test: Any? = lookUpVariable(expr.keyword, expr)
+        return lookUpVariable(expr.keyword, expr)
+
+    }
+
+    //FIXME: "!!" causing NullPointerException, recognizing "this as variable expression". Could be problem with Parser/Resolver
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        val test: Any? = lookUpVariable(expr.name, expr)
+        return lookUpVariable(expr.name, expr)
+
+    }
+
+    //Note: Evaluate use of 'Unit' for return value
     override fun visitUnaryExpr(expr: Expr.Unary): Any {
         val right: Any = evaluate(expr.right)
 
         return when (expr.operator.type) {
-            TokenType.MINUS -> -(right as Double)
+            TokenType.MINUS -> {
+                checkNumberOperand(expr.operator, right)
+                -(right as Double)
+            }
             TokenType.BANG -> !isTruthy(right)
             else -> {
                 return Unit
@@ -151,9 +198,37 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
     }
 
-    //Completed Statements
     override fun visitBlockStmt(stmt: Stmt.Block) {
         executeBlock(stmt.statements, Environment(environment))
+        return
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        var superclass: Any? = null
+
+        if(stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass as Expr.Variable)
+            if(superclass !is LoxClass) throw RuntimeError(stmt.superclass!!.name,"Superclass must be a class.")
+        }
+
+        environment.define(stmt.name.lexeme, null)
+
+        if(stmt.superclass != null) {
+            environment = Environment(environment)
+            environment.define("super", superclass)
+        }
+
+        val methods: MutableMap<String, LoxFunction> = HashMap()
+        for(method: Stmt.Function in stmt.methods) {
+            val function = LoxFunction(method, environment, method.name.lexeme == "init")
+            methods[method.name.lexeme] = function
+        }
+
+        val klass = LoxClass(stmt.name.lexeme, superclass as LoxClass?, methods)
+
+        if(superclass != null) environment = environment.enclosing as Environment
+
+        environment.assign(stmt.name, klass)
         return
     }
 
@@ -163,7 +238,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt, environment)
+        val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
         return
     }
@@ -188,8 +263,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
 
         if(stmt.value != null) value = evaluate(stmt.value)
 
-        throw Return(value!!)
-
+        throw Return(value)
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
@@ -199,7 +273,6 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
 
         environment.define(stmt.name.lexeme, value)
-
         return
     }
 
@@ -211,8 +284,8 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
     }
 
     //Helpers
-    private fun checkNumberOperand(operator: Token, right: Any) {
-        if (right is Double) return
+    private fun checkNumberOperand(operator: Token, operand: Any) {
+        if (operand is Double) return
         throw RuntimeError(operator, "Operand must be a number.")
     }
 
@@ -241,15 +314,15 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
     }
 
-    //FIXME: Review accuracy of logic
-    private fun isTruthy(any: Any): Boolean {
+    private fun isTruthy(any: Any?): Boolean {
+        if(any == null) return false
         if (any is Boolean) return any
-        return false
+        return true
     }
 
-    private fun isEqual(a: Any, b: Any): Boolean {
-        if (a is Unit && b is Unit) return true
-        if (a is Unit) return false
+    private fun isEqual(a: Any?, b: Any?): Boolean {
+        if (a == null && b == null) return true
+        if (a == null) return false
 
         return a == b
     }
@@ -264,6 +337,7 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
     }
 
+    //Note: "as Any" calls on return values may be incorrect
     private fun lookUpVariable(name: Token, expr: Expr): Any? {
         val distance: Int? = locals[expr]
         if(distance != null) {
@@ -288,31 +362,4 @@ class Interpreter : Expr.Visitor<Any>, Stmt.Visitor<Any> {
         }
         return obj.toString()
     }
-
-    /////////////////////////////////////////////////////////////////////
-    //Unfinished Expressions
-
-    override fun visitGetExpr(expr: Expr.Get): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitSetExpr(expr: Expr.Set): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitSuperExpr(expr: Expr.Super): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitThisExpr(expr: Expr.This): Any {
-        TODO("Not yet implemented")
-    }
-
-    /////////////////////////////////////////////////////////////////////
-    //Unfinished Statements
-
-    override fun visitClassStmt(stmt: Stmt.Class) {
-        TODO("Not yet implemented")
-    }
-
 }
