@@ -1,11 +1,11 @@
-class LoxClass(var name: String, private var superclass: LoxClass?, private var methods: MutableMap<String, LoxFunction>) : LoxCallable {
+class LoxClass(val name: String, private val superclass: LoxClass?, private var methods: Map<String, LoxFunction>) : LoxCallable {
 
     override fun arity(): Int {
-        val initializer: LoxFunction = findMethod("init") ?: return 0
-        return initializer.arity()
+        val initializer = findMethod("init")
+        return initializer?.arity() ?: 0
     }
 
-    override fun call(interpreter: Interpreter, arguments: List<Any>): Any {
+    override fun call(interpreter: Interpreter, arguments: List<Any?>): Any {
         val instance = LoxInstance(this)
         val initializer: LoxFunction? = findMethod("init")
 
@@ -16,9 +16,7 @@ class LoxClass(var name: String, private var superclass: LoxClass?, private var 
 
     fun findMethod(name: String): LoxFunction? {
         if(methods.containsKey(name)) return methods[name]
-        if(superclass != null) return superclass!!.findMethod(name)
-
-        return null
+        return superclass?.findMethod(name)
     }
 
     override fun toString(): String {

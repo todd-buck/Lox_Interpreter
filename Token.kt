@@ -1,29 +1,16 @@
-class Token(type: TokenType, lexeme: String, literal: Any?, line: Int) {
-    val type: TokenType
-    val lexeme: String
-
-    val literal: Any?
-    val line: Int
-
-    init {
-        this.type = type
-        this.lexeme = lexeme
-        this.literal = literal
-        this.line = line
-    }
+class Token(val type: TokenType, val lexeme: String, val literal: Any?, val line: Int) {
 
     @JvmName("getLexeme1")
     fun getLexeme(): String {
-        return this.lexeme
+        return lexeme
     }
 
     @JvmName("getType1")
     fun getType(): TokenType {
-        return this.type
+        return type
     }
 
     override fun toString(): String {
         return "$type $lexeme $literal"
     }
-
 }

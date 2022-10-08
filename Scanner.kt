@@ -42,9 +42,8 @@ internal class Scanner(private val source: String) {
     private fun identifier() {
         while(isAlphaNumeric(peek())) advance()
 
-        val text : String = source.substring(start, current)
-        var type : TokenType? = keywords[text]
-        if(type == null) type = TokenType.IDENTIFIER
+        val text = source.substring(start, current)
+        val type = keywords[text] ?: TokenType.IDENTIFIER
 
         addToken(type)
     }
@@ -94,7 +93,6 @@ internal class Scanner(private val source: String) {
         return source[current + 1]
     }
 
-    //FIXME: Determine if 'break' is implied in Kotlin switch statement, add to each line if not implicit
     private fun scanToken() {
         when (val c = advance()) {
             //single character lexemes
@@ -147,8 +145,10 @@ internal class Scanner(private val source: String) {
             advance()
         }
 
-        if(isAtEnd())
+        if(isAtEnd()) {
             Lox.error(line, "Unterminated string.")
+            return
+        }
 
         advance()
 

@@ -1,40 +1,27 @@
-class Environment {
-    private var values: MutableMap<String, Any?> = hashMapOf()
-    var enclosing: Environment?
-
-    constructor() {
-        enclosing = null
-    }
-
-    constructor(enclosing: Environment) {
-        this.enclosing = enclosing
-    }
+class Environment(val enclosing: Environment? = null) {
+    private val values: MutableMap<String, Any?> = hashMapOf()
 
     private fun ancestor(distance: Int): Environment {
-        var environment: Environment = this
+        var environment = this
 
-        for (i: Int in 0 until distance) {
+        for (i in 0 until distance) {
             environment = environment.enclosing!!
         }
 
         return environment
     }
 
-    fun assign(name: Token, value: Any) {
+    fun assign(name: Token, value: Any?) {
         if (values.containsKey(name.lexeme)) {
             values[name.lexeme] = value
-            return
+        } else if (enclosing != null) {
+            enclosing.assign(name, value)
         }
 
-        if (enclosing != null) {
-            enclosing!!.assign(name, value)
-            return
-        }
-
-        throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
+        else throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
     }
 
-    fun assignAt(distance: Int, name: Token, value: Any) {
+    fun assignAt(distance: Int, name: Token, value: Any?) {
         ancestor(distance).values[name.lexeme] = value
     }
 
@@ -47,12 +34,12 @@ class Environment {
             return values[name.lexeme]
         }
 
-        if (enclosing != null) return enclosing!![name]
+        if (enclosing != null) return enclosing[name]
 
         throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.")
     }
 
-    fun getAt(distance: Int, name: String?): Any? {
+    fun getAt(distance: Int, name: String): Any? {
         return ancestor(distance).values[name]
     }
 

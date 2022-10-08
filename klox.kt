@@ -8,10 +8,10 @@ import kotlin.system.exitProcess
 
 
 object Lox {
-    private val interpreter: Interpreter = Interpreter()
+    private val interpreter = Interpreter()
 
     @JvmStatic
-    var hadError : Boolean = false
+    private var hadError : Boolean = false
     private var hadRuntimeError = false
 
 
@@ -31,7 +31,7 @@ object Lox {
     @Throws(IOException::class)
     @JvmStatic
     private fun runFile(path: String) {
-        val bytes: ByteArray = Files.readAllBytes(Paths.get(path))
+        val bytes = Files.readAllBytes(Paths.get(path))
         run(String(bytes, Charset.defaultCharset()))
         if(hadError) exitProcess(65)
         if (hadRuntimeError) exitProcess(70)
@@ -57,7 +57,7 @@ object Lox {
         val tokens = scanner.scanTokens()
 
         val parser = Parser(tokens)
-        val statements : List<Stmt> = parser.parse()
+        val statements = parser.parse()
 
         if(hadError) return
 

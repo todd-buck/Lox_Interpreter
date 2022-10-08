@@ -6,10 +6,10 @@ class LoxFunction(private var declaration: Stmt.Function, private var closure: E
         return LoxFunction(declaration, environment, isInitializer)
     }
 
-    override fun call(interpreter: Interpreter, arguments: List<Any>) : Any? {
+    override fun call(interpreter: Interpreter, arguments: List<Any?>) : Any? {
         val environment = Environment(closure)
 
-        for (i: Int in 0 until declaration.params.size) {
+        for (i: Int in declaration.params.indices) {
             environment.define(declaration.params[i].lexeme, arguments[i])
         }
 

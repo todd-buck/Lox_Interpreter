@@ -13,7 +13,7 @@ abstract class Stmt {
         fun visitWhileStmt(stmt: While): R
     }
 
-    class Block(val statements: List<Stmt>) : Stmt() {
+    class Block(val statements: List<Stmt?>) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>) : R {
             return visitor.visitBlockStmt(this)
         }
@@ -31,7 +31,7 @@ abstract class Stmt {
         }
     }
 
-    class Function(val name: Token, val params: List<Token>, val body: List<Stmt>) : Stmt() {
+    class Function(val name: Token, val params: List<Token>, val body: List<Stmt?>) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitFunctionStmt(this)
         }
