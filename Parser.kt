@@ -28,7 +28,7 @@ class Parser(private val tokens: List<Token>) {
         val expr = or()
 
         if (match(EQUAL)) {
-            val equals: Token = previous()
+            val equals = previous()
             val value = assignment()
 
             if (expr is Expr.Variable) {
@@ -146,7 +146,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun expressionStatement(): Stmt {
-        val expr: Expr = expression()
+        val expr = expression()
         consume(SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
     }
@@ -310,7 +310,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun printStatement() : Stmt {
-        val value: Expr = expression()
+        val value = expression()
         consume(SEMICOLON, "Expect ':' after value.")
         return Stmt.Print(value)
     }

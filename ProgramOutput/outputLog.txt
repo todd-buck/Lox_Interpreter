@@ -1,8 +1,8 @@
 inner a
-nil
+outer b
 global c
 outer a
-outer b
+global b
 global c
 global a
 global b

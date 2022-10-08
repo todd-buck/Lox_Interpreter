@@ -43,17 +43,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) - (right as Double)
             }
-
             TokenType.SLASH -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) / (right as Double)
             }
-
             TokenType.STAR -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) * (right as Double)
             }
-
             TokenType.PLUS -> {
                 if (left is Double && right is Double) return left + right
                 if (left is String && right is String) return left + right
@@ -65,24 +62,20 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) > (right as Double)
             }
-
             TokenType.GREATER_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) >= (right as Double)
             }
-
             TokenType.LESS -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) < (right as Double)
             }
-
             TokenType.LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) <= (right as Double)
             }
 
             TokenType.BANG_EQUAL -> return !isEqual(left, right)
-
             TokenType.EQUAL_EQUAL -> return isEqual(left, right)
 
             else -> {
@@ -161,11 +154,6 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return lookUpVariable(expr.name, expr)
-
-    }
-
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
 
@@ -179,6 +167,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
                  null
             }
         }
+    }
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return lookUpVariable(expr.name, expr)
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block) {
@@ -220,7 +212,6 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     override fun visitFunctionStmt(stmt: Stmt.Function) {
         val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
-        return
     }
 
     override fun visitIfStmt(stmt: Stmt.If) {
@@ -243,7 +234,6 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     override fun visitVarStmt(stmt: Stmt.Var) {
         val value = if(stmt.initializer != null) evaluate(stmt.initializer) else null
-
         environment.define(stmt.name.lexeme, value)
     }
 
@@ -312,12 +302,13 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         if(distance != null) {
             return environment.getAt(distance, name.lexeme)
         } else {
-            return globals[name]
+            return globals.get(name)
         }
     }
 
     fun resolve(expr: Expr, depth: Int) {
         locals[expr] = depth
+        return
     }
 
     private fun stringify(any: Any?): String {

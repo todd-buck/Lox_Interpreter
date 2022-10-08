@@ -1,4 +1,4 @@
-class LoxClass(val name: String, private val superclass: LoxClass?, private var methods: Map<String, LoxFunction>) : LoxCallable {
+class LoxClass(val name: String, private val superclass: LoxClass?, private val methods: Map<String, LoxFunction>) : LoxCallable {
 
     override fun arity(): Int {
         val initializer = findMethod("init")

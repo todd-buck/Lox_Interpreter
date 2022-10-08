@@ -38,7 +38,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     private fun endScope() {
-        scopes.removeFirst()
+        scopes.removeLast()
     }
 
     private fun resolve(expr: Expr) {
@@ -85,6 +85,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitAssignExpr(expr: Expr.Assign) {
         resolve(expr.value)
         resolveLocal(expr, expr.name)
+        return
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary) {
@@ -223,6 +224,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         declare(stmt.name)
         if(stmt.initializer != null) resolve(stmt.initializer)
         define(stmt.name)
+        return
     }
 
     override fun visitWhileStmt(stmt: Stmt.While) {

@@ -1,5 +1,5 @@
 class LoxInstance(private val klass: LoxClass) {
-    private val fields: MutableMap<String, Any?> = mutableMapOf()
+    private val fields: MutableMap<String, Any?> = hashMapOf()
 
     fun get(name: Token): Any? {
         if(fields.containsKey(name.lexeme)) return fields[name.lexeme]
