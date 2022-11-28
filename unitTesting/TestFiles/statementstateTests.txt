@@ -1,0 +1,61 @@
+// printNullTest()
+// Expected Output: Error
+print;
+
+// printEmptyTest()
+// Expected Output:
+print "";
+
+// printLiteralTest()
+// Expected Output: "a"
+print "a";
+
+// printVariableTest()
+// Expected Output: 1
+var test = 1;
+print test;
+
+// variableDecleration()
+// Expected Output: nil
+var test;
+print test;
+
+// variableAssignmentNull()
+// Expected Output: nil
+var test = nil;
+print test;
+
+// variableAssignmentEmpty()
+// Expected Output:
+var test = "";
+print test;
+
+// variableAssignmentLiteral()
+// Expected Output: 1
+var test = "1";
+print test;
+
+// variableAssignmentCrossAssign()
+// Expected Output: 2
+var test1 = 2;
+var test2 = test1;
+print test2;
+
+// localVariableShadow()
+// Expected Output: 60
+var test = 11;
+
+test = 0;
+
+{
+  var test = 3 * 4 * 5;
+  print test;
+}
+
+// globalVariableInLocalScope()
+// Expected Output: global local
+var global = "global";
+{
+    var local = "local";
+    print global + local;
+}

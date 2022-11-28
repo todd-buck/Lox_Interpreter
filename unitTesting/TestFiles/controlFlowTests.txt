@@ -1,0 +1,76 @@
+// ifEmpty()
+// Expected Output: ""
+if () {}
+
+// ifTrue()
+// Expected Output: true
+if (true) {
+    print "true";
+}
+
+// ifFalse()
+// Expected Output: ""
+if (false) {
+    print "false";
+}
+
+// ifElse()
+// Expected Output: else
+if (false) {
+    print "if";
+} else {
+    print "else";
+}
+
+// ifDanglingElse()
+// Expected Output: outer else
+var a = "";
+if (true) {
+    a = "outer else";
+    if (false) {
+        a = "inner else";
+    } else {
+        print a;
+    }
+}
+
+// ifLogicalAndTrue()
+// Expected output: true
+if (true and true) {
+    print "true";
+}
+
+// ifLogicalAndFalse()
+// Expected output: ""
+if (true and false) {
+    print "true";
+}
+
+// ifLogicalOr()
+// Expected output: true
+if (true or false) {
+    print "true";
+}
+
+// while()
+// Expected Output: "1
+                     2
+                     3"
+{
+  var i = 1;
+  while (i < 4) {
+    print i;
+    i = i + 1;
+  }
+}
+
+// forLoop()
+// Expected Output: "1
+                     2
+                     3"
+
+{
+    for (var i = 1; 1 <=3; i++) {
+        print i;
+    }
+}
