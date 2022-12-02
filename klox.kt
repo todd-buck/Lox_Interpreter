@@ -18,12 +18,14 @@ object Lox {
     @Throws(IOException::class)
     @JvmStatic
     fun main(args: Array<String>) {
-        if (args.size > 1) {
-            println("Usage: klox [script]")
+        if (args.size > 2) {
+            println("Usage: klox [script] or klox block {Execution Block}")
             Runtime.getRuntime().exit(64)
         } else if (args.size == 1) {
             runFile(args[0])
-        } else {
+        } else if (args.size == 2 && args[0] == "block") {
+            runBlock(args[1])
+        }else {
             runPrompt()
         }
     }
@@ -35,6 +37,16 @@ object Lox {
         run(String(bytes, Charset.defaultCharset()))
         if(hadError) exitProcess(65)
         if (hadRuntimeError) exitProcess(70)
+    }
+
+    @Throws(IOException::class)
+    @JvmStatic
+    private fun runBlock(block: String) {
+        run(block)
+        if (hadError) throw Error("Program Error")
+        //if(hadError) exitProcess(65)
+        if (hadRuntimeError) throw Error("Runtime Error")
+        //if (hadRuntimeError) exitProcess(70)
     }
 
     @Throws(IOException::class)

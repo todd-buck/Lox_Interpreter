@@ -12,15 +12,19 @@ print "a";
 
 // printVariableTest()
 // Expected Output: 1
-var test = 1;
-print test;
+{
+  var test = 1;
+  print test;
+}
 
-// variableDecleration()
+// variableDeclerationTest()
 // Expected Output: nil
-var test;
-print test;
+{
+  var test;
+  print test;
+}
 
-// variableAssignmentNull()
+// variableAssignmentNullTest()
 // Expected Output: nil
 var test = nil;
 print test;
