@@ -4,6 +4,7 @@ import Lox.main
 import Scanner
 import TokenType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class ScannerTests {
     //TODO: Verify that Scanner() should be reading last empty token (for EOF)
@@ -185,7 +186,9 @@ class ScannerTests {
     fun fileInput_trimUselessCharacters_RUN() {
         val path = arrayOf("unitTesting/InputFiles/uselessCharacters.txt")
         println("\nTRIM TEST FROM FILE (\"newline\\n tab\\t carriage\\r\"):")
-        main(path)
+        assertThrows<Error> {
+            main(path)
+        }
 
     }
 }

@@ -1,17 +1,13 @@
 package unitTesting
 
 import Lox.main
-import Scanner
-import TokenType
 import org.junit.jupiter.api.Test
 import com.github.stefanbirkner.systemlambda.SystemLambda.*
-import org.junit.Assert
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.assertThrows
 import java.lang.Error
 
-class statementstateTests {
+class StatementstateTests {
     @Test
     fun printNullTest() {
         executeErrorTestBlock("print;")
