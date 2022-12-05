@@ -11,7 +11,6 @@ An implementation of the Lox programming language as outlined by Robert Nystorm 
 ### Main Folder
 
 This is where you will find the Kotlin code for the interpreter. To execute the interpreter, use the Lox.kt file.
-ADD MORE ABOUT HOW TO RUN
 
 ### Testing Folder
 
@@ -19,6 +18,8 @@ This is where you will find a testing suite for the interpreter. It contains cod
 
 If you would like to view the code segments for the unit tests, view the .txt file with the same name under the TestFiles folder (classesTests.txt, functionTests.txt, etc). 
 
-All JUnit testing outputs have been collected into an HTML document in the TestOutput folder (Test Results - ScannerTests.html, Test Results - ClassesTests.html, etc). All tests can be verified by opening these files. To view the results, open these files in your browser.
+All JUnit testing outputs have been collected into an HTML document in the TestOutput folder (Test Results - ScannerTests.html, Test Results - ClassesTests.html, etc). All tests from the .txt files can be verified by opening these html files. To view the results of testing, open these html files in your browser.
+
+If a test has passed, it will say "passed" in green on the right side of the page. If it has failed, it will open a drop down with error information.
 
 The InputFiles folder is the source of file inputs for the ScannerTests, and the ProgramTesting folder is a working folder of programattic testing.
