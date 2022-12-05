@@ -23,21 +23,21 @@ object GenerateAst {
 
         val outputDir = args[0]
 
-        defineAst(outputDir, "Expr", listOf(
-            "Assign   : name: Token, value: Expr",
-            "Binary   : left: Expr, operator: Token, right: Expr",
-            "Grouping : expression: Expr",
+        defineAst(outputDir, "klox.Expr", listOf(
+            "Assign   : name: klox.Token, value: klox.Expr",
+            "Binary   : left: klox.Expr, operator: klox.Token, right: klox.Expr",
+            "Grouping : expression: klox.Expr",
             "Literal  : value: Object",
-            "Unary    : operator: Token, right: Expr",
-            "Variable : name: Token"
+            "Unary    : operator: klox.Token, right: klox.Expr",
+            "Variable : name: klox.Token"
             )
         )
 
-        defineAst(outputDir, "Stmt", listOf(
-            "Block      : statements: List<Stmt>",
-            "Expression : expression: Expr",
-            "Print      : expression: Expr",
-            "Var        : name: Token, initializer: Expr"
+        defineAst(outputDir, "klox.Stmt", listOf(
+            "Block      : statements: List<klox.Stmt>",
+            "Expression : expression: klox.Expr",
+            "Print      : expression: klox.Expr",
+            "Var        : name: klox.Token, initializer: klox.Expr"
         ))
     }
 

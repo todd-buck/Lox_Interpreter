@@ -1,0 +1,59 @@
+// inheritanceDeclarationTest()
+// Expected Output: "Inheritor"
+
+class Inheritance {}
+class Inheritor < Inheritance {}
+print Inheritor;
+
+// inheritanceMethodTest()
+// Expected Output: "Method Inherited"
+class ToInherit {
+  test() {
+    print "Method Inherited";
+  }
+}
+
+class Inherits < ToInherit {}
+
+Inherits().test();
+
+
+// superClassMethodCallTest
+// Expected Ouput: "Super
+                    Inherited"
+class Inheritance {
+  test() {
+    print "Super";
+  }
+}
+
+class Inheritor < Inheritance {
+  test() {
+    super.test();
+    print "Inherited";
+  }
+}
+
+Inheritor().test();
+
+// nestedInheritanceTest()
+// Expected output: "A method"
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
+
+class C < B {}
+
+C().test();

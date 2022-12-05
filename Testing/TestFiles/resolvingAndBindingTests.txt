@@ -1,0 +1,33 @@
+// staticScope()
+// Expected Output: "outer
+                     outer"
+var test = "outer";
+{
+  fun showA() {
+    print test;
+  }
+
+  showA();
+  var test = "inner";
+  showA();
+}
+
+// localNameReassignment()
+// Expected Output: Error
+var a = "outer";
+{
+  var a = a;
+}
+
+// resolutionError()
+// Expected Output: Error
+fun resolution() {
+    var a = "first";
+    var a = "second";
+}
+
+// topLevelReturn()
+// Expected Output: Error
+{
+    return "at top level";
+}

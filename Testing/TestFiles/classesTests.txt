@@ -1,0 +1,103 @@
+// classDeclaration()
+// Expected Output: ClassDeclared
+class ClassDeclared {
+}
+
+print ClassDeclared;
+
+// classInstanced()
+// Expected Output: ClassInstanced instance
+class ClassInstanced{}
+var testclass = ClassInstanced();
+print testclass;
+
+// classGetExpression()
+// Expected Output: got
+class GetExpression {
+  init() {
+    this.a = "got";
+  }
+}
+
+var testclass = GetExpression();
+print testclass.a;
+
+// classNestedGetExpression()
+// Expected Output: got
+class GetExpression {
+    init() {
+      this.inner = Inner();
+    }
+}
+
+class Inner {
+  init() {
+    this.a = "got";
+  }
+}
+
+var testclass = GetExpression();
+print testclass.inner.a;
+
+// classSetExpression()
+// Expected Output: set
+class SetExpression {
+    var a = "got";
+}
+
+var class = SetExpression();
+class.a = "set";
+print class.a;
+
+// classNestedSetExpression()
+// Expected Output: got
+class SetExpression {
+    var inner = Inner();
+}
+
+class Inner {
+    var a = "got";
+}
+
+var class = SetExpression();
+class.inner.a = "set";
+print class.inner.a;
+
+// classMethodDeclaration()
+// Expected Output: declared
+class Test {
+    testing() {
+        print "declared";
+    }
+}
+
+var a = Test();
+a.testing();
+
+// classMethodWithArgDeclaration()
+// Expected Output: declared success
+class Test {
+    testing(argument) {
+        print "declared " + argument;
+    }
+}
+
+var a = Test();
+a.testing("success");
+
+// methodThis()
+// Expected Output: Test Success
+class Test {
+  testing() {
+    var a = "Test ";
+    print a + this.b;
+  }
+}
+
+var testinstance = Test();
+testinstance.b = "Success";
+testinstance.testing();
+
+// topLevelThis()
+// Expected Output: Error
+print this;
